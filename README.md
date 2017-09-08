@@ -15,7 +15,7 @@ Discord bot that gathers all links shared in the specified channel and posts the
 - run `pip install django`
 
 
-If you want to run the bot locally which is recommended, you should run
+If you want to run the bot locally which is recommended, you should run 
 - TO BE CONTINUED
 TODO: install clean working environment locally. (NGROK?)
 
