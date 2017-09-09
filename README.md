@@ -2,31 +2,26 @@
 
 Discord bot that gathers all links shared in the specified channel and posts them to website
 
-##Instructions for development environment
+## Instructions for setting up development environment
 
 - Install python 3.6.2 (anywhere u like)
-- create a folder for the project
-- go inside the folder you just made
-- run `virtualenv venv` (With virtualenv you can do clean environment and not pollute your entire pc)
-- run `source venv/Scripts/activate`
+- Create a folder for the project
+- Go inside the folder you just made
+- Run `virtualenv venv` (With virtualenv you can do clean environment and not pollute your entire pc)
+- Run `source venv/Scripts/activate` or `venv\Scripts\activate.bat` if you're on Windows
   - Note that this only works on cmd, not for example in git bash
+  - In your CL you should now have `(venv) λ` prefix
 - Clone the repository from github
-- run `cd discord-bottachable`
-- run `pip install django`
+- Run `cd discord-bottachable`
+- Run `pip install -r requirements.txt`
+- To start local development use `heroku local web` or `heroku local web -f Procfile.windows` if you're on Windows
 
 
 If you want to run the bot locally which is recommended, you should run 
 - TO BE CONTINUED
 TODO: install clean working environment locally. (NGROK?)
 
-
-
-
-
-
-
-
-#Heroku starter Template
+# Heroku starter Template
 
 An utterly fantastic project starter template for Django 1.11.
 
