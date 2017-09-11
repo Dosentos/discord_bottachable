@@ -10,11 +10,15 @@ Discord bot that gathers all links shared in the specified channel and posts the
 - Run `virtualenv venv` (With virtualenv you can do clean environment and not pollute your entire pc)
 - Run `source venv/Scripts/activate` or `venv\Scripts\activate.bat` if you're on Windows
   - Note that this only works on cmd, not for example in git bash
+  - IF you are using Windows powershell use command `.\\venv\scripts\activate`
   - In your CL you should now have `(venv) λ` prefix
+  - *Remember to activate venv every time you start coding*
 - Clone the repository from github
 - Run `cd discord-bottachable`
 - Run `pip install -r requirements.txt`
 - To start local development use `heroku local web` or `heroku local web -f Procfile.windows` if you're on Windows
+- You can now access your site on `localhost:5000`
+
 
 
 If you want to run the bot locally which is recommended, you should run 
