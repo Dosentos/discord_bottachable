@@ -1,1 +1,1 @@
-web: gunicorn discord-bottachable.wsgi --log-file -
+web: gunicorn discord_bottachable.wsgi --log-file -
