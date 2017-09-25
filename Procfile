@@ -1,1 +1,1 @@
-web: gunicorn wsgi:application --reload --log-file -
+worker: python manage.py bot
