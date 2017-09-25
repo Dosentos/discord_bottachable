@@ -20,11 +20,13 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "y644e!(9mbk5d1!wyd&r818j!=xfn1c#v^koo$=g7&1r1*k*sz"
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = "y644e!(9mbk5d1!wyd&r818j!=xfn1c#v^koo$=g7&1r1*k*sz"
 
 # Application definition
 
@@ -39,6 +41,7 @@ INSTALLED_APPS = [
     # http://whitenoise.evans.io/en/stable/django.html#using-whitenoise-in-development
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
+    'discord_bottachable'
 ]
 
 MIDDLEWARE = [
@@ -131,3 +134,9 @@ STATICFILES_DIRS = [
 # Simplified static file serving.
 # https://warehouse.python.org/project/whitenoise/
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
+try:
+  from local_settings import *
+except ImportError:
+  pass
