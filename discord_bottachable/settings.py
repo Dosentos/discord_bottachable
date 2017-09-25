@@ -12,6 +12,11 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 import os
 import dj_database_url
 
+# Project specified settings from local settings / environment veriables
+DISCORD_CLIENT_ID = os.environ.get('DISCORD_CLIENT_ID', None)
+DISCORD_BOT_TOKEN = os.environ.get('DISCORD_BOT_TOKEN', None)
+
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -26,7 +31,7 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 DEBUG = False
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "y644e!(9mbk5d1!wyd&r818j!=xfn1c#v^koo$=g7&1r1*k*sz"
+SECRET_KEY = "foo"
 
 # Application definition
 
@@ -106,7 +111,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Helsinki'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
