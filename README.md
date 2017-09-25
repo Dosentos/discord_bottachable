@@ -31,10 +31,7 @@ Discord bot that gathers all links shared in the specified channel and posts the
     - Save the file in the project root directory.
         ```python
         # SECURITY WARNING: keep the secret key used in production secret!
-        SECRET_KEY = "PzMXKUSx9&J74mcOK}qTURi?GJZDNZ$gXB6P(iQX'Z,$G^xhd:fwd}ksvX~9(W%"
-
-        # Back up of old secret key if the new somehow is not working..
-        # SECRET_KEY = "y644e!(9mbk5d1!wyd&r818j!=xfn1c#v^koo$=g7&1r1*k*sz"
+        SECRET_KEY = ""
 
         # Whether or not you should see proper error messages on the site when error happens
         DEBUG = True
