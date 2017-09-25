@@ -2,6 +2,14 @@
 
 Discord bot that gathers all links shared in the specified channel and posts them to website
 
+## Instructions for development
+- When you pull new code, run `pip install -r requirements.txt` if there's new requirements added to project
+- If you install more PIP packages, remember to run `pip freeze > requirements.txt` to save them in requirements
+- If you add more settings in `local_settings.py`, remember to **update local settings example in readme**
+
+
+
+
 ## Instructions for setting up development environment
 
 - Install python 3.6.2 (anywhere u like)
@@ -21,7 +29,8 @@ Discord bot that gathers all links shared in the specified channel and posts the
 - Set up local_settings.py file
     - Inside the file you should write (verify from buddy that this is the latests version)
     - Save the file in the project root directory.
-        `# SECURITY WARNING: keep the secret key used in production secret!
+        ```python
+        # SECURITY WARNING: keep the secret key used in production secret!
         SECRET_KEY = "PzMXKUSx9&J74mcOK}qTURi?GJZDNZ$gXB6P(iQX'Z,$G^xhd:fwd}ksvX~9(W%"
 
         # Back up of old secret key if the new somehow is not working..
@@ -32,8 +41,8 @@ Discord bot that gathers all links shared in the specified channel and posts the
 
         # Discord authentication stuff
         DISCORD_TOKEN = ''
-        `
-    
+        ```
+
 
 
 
