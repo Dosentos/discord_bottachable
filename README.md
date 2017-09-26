@@ -6,7 +6,7 @@ Discord bot that gathers all links shared in the specified channel and posts the
 - When you pull new code, run `pip install -r requirements.txt` if there's new requirements added to project
 - If you install more PIP packages, remember to run `pip freeze > requirements.txt` to save them in requirements
 - If you add more settings in `local_settings.py`, remember to **update local settings example in readme**
-
+- In the project folder root you can start venv directly with `.\..\venv\scripts\activate` (powershell)
 
 
 
@@ -37,7 +37,7 @@ Discord bot that gathers all links shared in the specified channel and posts the
         DEBUG = True
 
         # Discord authentication stuff
-        DISCORD_TOKEN = ''
+        DISCORD_BOT_TOKEN = = ''
         ```
 
 
