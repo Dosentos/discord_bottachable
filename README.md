@@ -40,7 +40,17 @@ Discord bot that gathers all links shared in the specified channel and posts the
         DISCORD_BOT_TOKEN = = ''
         ```
 
+### Setting up mock data for UI
+1. Migrate
+    - `python manage.py showmigrations`
+    - `python manage.py makemigrations`
+    - `python manage.py migrate`
+2. Load mock data
+    - `python manage.py loaddata mock_data.json`
+    > Note: Make sure `models.py` contains all the fields
 
+3. Run server
+    > Note: If you need to use print for debugging, say, views.py then use `python manage.py runserver`
 
 
 

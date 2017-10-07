@@ -1,13 +1,24 @@
-{% extends "base.html" %}
-{% load staticfiles %}
+{% extends "base.html" %} 
+{% load staticfiles %} 
 
 {% block content %}
-
-<div class="container">
-    <div class="starter-template">
-    <h1>Bootstrap starter template</h1>
-        <p class="lead">Use this document as a way to quickly start any new project.<br> All you get is this text and a mostly barebones HTML document.</p>
+<div class="row">
+    {% for l in links %}
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">
+        <div class="card">
+            <a href="{{l.source}}">
+                <img style="height: 200px;" class="card-img-top" src="{{l.thumbnail_url}}" alt="Card image cap">
+            </a>
+            <div class="card-body">
+                <a href="{{l.source}}">
+                    <h4 class="card-title">{{l.title}}</h4>
+                </a>
+                <p class="card-text">{{l.description}}</p>
+                <span style="white-space: initial;" class="badge badge-pill badge-secondary">{{l.tags}}</span>
+            </div>
+        </div>
     </div>
+    {% endfor %}
 </div>
 
 {% endblock %}

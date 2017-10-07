@@ -14,3 +14,10 @@ class Attachment(models.Model):
 class Tag(models.Model):
     tag_name = models.CharField(max_length=64)
     attachment_id = models.ForeignKey('Attachment')
+
+class Link(models.Model):
+    source = models.CharField(max_length=256)
+    title = models.CharField(max_length=256)
+    description = models.CharField(max_length=256)
+    thumbnail_url = models.CharField(max_length=256)
+    tags = models.CharField(max_length=256)
