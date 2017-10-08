@@ -1,0 +1,22 @@
+[{
+		"model": "discord_bottachable.tag",
+		"pk": 1,
+		"fields": {
+			"name": "Foo"
+		}
+	},
+	{
+		"model": "discord_bottachable.tag",
+		"pk": 2,
+		"fields": {
+			"name": "Bar" 
+		}
+	},
+	{
+		"model": "discord_bottachable.tag",
+		"pk": 3,
+		"fields": {
+			"name": "Kissa"
+		}
+	}
+]
