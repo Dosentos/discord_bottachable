@@ -38,7 +38,20 @@ Discord bot that gathers all links shared in the specified channel and posts the
         DISCORD_BOT_TOKEN = = ''
         ```
 
+### Setting up mock data for UI
+1. Delete `db.sqlite3` and everything else in `discord_bottachable/migrations/` except `__init__.py`
+2. Migrate
+    - `python manage.py showmigrations`
+    - `python manage.py makemigrations`
+    - `python manage.py migrate`
+3. Load mock data
+    - `python manage.py loaddata users.json`
+    - `python manage.py loaddata tags.json`
+    - `python manage.py loaddata links.json`
+    > Note: Make sure `models.py` contains all the fields
 
+4. Run server
+    > Note: If you need to use print for debugging, say, views.py then use `python manage.py runserver`
 
 # Heroku starter Template
 

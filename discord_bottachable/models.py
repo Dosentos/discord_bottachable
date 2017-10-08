@@ -4,11 +4,13 @@ from __future__ import unicode_literals
 from django.db import models
 
 class User(models.Model):
-    user_id = models.CharField(max_length=64)
+    discord_id = models.CharField(max_length=64)
 
+class Tag(models.Model):
+    name = models.CharField(max_length=64)
 
 class Link(models.Model):
-    url = models.CharField(max_length=2048)
+    source = models.CharField(max_length=256)
     user_id = models.ForeignKey('User')
     channel_id = models.CharField(max_length = 64)
     server_id = models.CharField(max_length = 64)
@@ -16,7 +18,4 @@ class Link(models.Model):
     title = models.CharField(max_length = 128)
     media_url = models.CharField(max_length = 2048)
     created_at = models.DateTimeField(auto_now_add=True)
-
-class Tag(models.Model):
-    tag_name = models.CharField(max_length=64)
-    link_id = models.ForeignKey('Link')
+    tags = models.ManyToManyField(Tag)
