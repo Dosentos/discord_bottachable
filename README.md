@@ -8,8 +8,6 @@ Discord bot that gathers all links shared in the specified channel and posts the
 - If you add more settings in `local_settings.py`, remember to **update local settings example in readme**
 - In the project folder root you can start venv directly with `.\..\venv\scripts\activate` (powershell)
 
-
-
 ## Instructions for setting up development environment
 
 - Install python 3.6.2 (anywhere u like)
@@ -51,14 +49,6 @@ Discord bot that gathers all links shared in the specified channel and posts the
 
 3. Run server
     > Note: If you need to use print for debugging, say, views.py then use `python manage.py runserver`
-
-
-
-
-
-If you want to run the bot locally which is recommended, you should run 
-- TO BE CONTINUED
-- TODO: install clean working environment locally. (NGROK?)
 
 # Heroku starter Template
 
