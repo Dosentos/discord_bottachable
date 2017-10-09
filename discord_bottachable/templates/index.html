@@ -3,24 +3,18 @@
 
 {% block content %}
 <div class="row">
-    {% for l in links %}
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">
-        <div class="card">
-            <a href="{{l.source}}">
-                <img style="height: 200px;" class="card-img-top" src="{{l.media_url}}" alt="Card image cap">
-            </a>
-            <div class="card-body">
-                <a href="{{l.source}}">
-                    <h4 class="card-title">{{l.title}}</h4>
-                </a>
-                <p class="card-text">{{l.description}}</p>
-                {% for t in l.tags.all %}
-                    <span style="white-space: initial;" class="badge badge-pill badge-secondary">{{t.name}}</span>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-    {% endfor %}
+    <h1>Hello World</h1>
+    {% if servers.count == 0 %}
+        <h2>Looks like I'm not in any server yet :(</h2>
+        <p>Click <a href="#">here</a> to add me to your own server!</p>
+    {% else %}
+        <h2>I'm currently collecting links for these servers:</h2>
+        <ul>
+            {% for s in servers %}
+                <li><a href="./{{ s.discord_id }}">{{ s.name }}</a></li>
+            {% endfor %}
+        </ul>
+        <p>Click <a href="#">here</a> to add me to your own server!</p>
+    {% endif %}
 </div>
-
 {% endblock %}

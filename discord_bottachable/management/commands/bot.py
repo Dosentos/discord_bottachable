@@ -1,6 +1,6 @@
 from discord_bottachable import settings
 from django.core.management.base import BaseCommand
-from discord_bottachable.models import User, Link, Tag
+from discord_bottachable.models import User, Link, Tag, Server
 from pprint import pprint
 
 import asyncio
@@ -48,25 +48,29 @@ async def on_message(message):
     elif message.content.startswith('!admin_dump_users'):
         objects = User.objects.all()
         for o in objects:
-            print("user: %s" % o.user_id)
-        print("%s users in db" % objects.__len__())
+            print("user: %s" % o.discord_id)
+        print("%s users in db" % len(objects))
         print("----------")
         await client.send_message(message.channel, "Users dumped into console.")
 
     elif message.content.startswith('!admin_dump_links'):
         objects = Link.objects.all()
         for o in objects:
-            print("url: %s\nuser: %s\nchannel: %s\nserver: %s\ndescription: %s\ntitle: %s\nimage: %s\ncreated: %s\n" % (o.url, o.user_id, o.channel_id, o.server_id, o.description, o.title, o.media_url, o.created_at))
+            print("url: %s\nuser: %s\nchannel: %s\nserver: %s\ndescription: "
+                  "%s\ntitle: %s\nimage: %s\ntagsLen: %s\ncreated: %s\n" % (
+                o.source,
+                    o.user_id, o.channel_id, o.server_id, o.description,
+                    o.title, o.media_url, o.tags.count(), o.created_at))
             print("********************")
-        print("%s links in db" % objects.__len__())
+        print("%s links in db" % len(objects))
         print("----------")
         await client.send_message(message.channel, "links dumped into console.")
 
     elif message.content.startswith('!admin_dump_tags'):
         objects = Tag.objects.all()
         for o in objects:
-            print("tag: %s, link: %s" % (o.tag_name, o.link_id))
-        print("%s tags in db" % objects.__len__())
+            print("tag: %s" % o.name)
+        print("%s tags in db" % len(objects))
         print("----------")
         await client.send_message(message.channel, "Tags dumped into console.")
 
@@ -97,7 +101,7 @@ def handle_link(message):
         message_dict = split_link_message(msg)
 
         if message_dict['url'] != '':
-            saved, errors = link_to_db(message.author.id, message.channel.id, message.server.id, message_dict, errors)
+            saved, errors = link_to_db(message.author.id, message.channel.id, message.server, message_dict, errors)
 
             if saved:
                 print("url: %s\ntitle: %s\ntags: %s" %(message_dict['url'],message_dict['title'],message_dict['tags']))
@@ -150,59 +154,55 @@ def split_link_message(msg):
     message_dict['title'] = message_dict['title'].strip(' ')
     message_dict['tags'] = message_dict['tags'].strip(' ')
     print(message_dict['tags'])
-    return message_dict;
+    return message_dict
 
 # This function saves a link to database
-def link_to_db(user_id, channel_id, server_id, message_dict, errors):
+def link_to_db(user_id, channel_id, server, message_dict, errors):
 
     tags = message_dict['tags'].split(",")
 
-    if tags.__len__() == 0:
+    if len(tags) == 0:
         tags = ['Untagged']
     if message_dict['title'] == '':
         message_dict['title'] = 'Lorem Ipsum Title'
 
     try:
-        user, created_user = User.objects.get_or_create(
-            user_id=user_id);
-    except Exception as e:
-        errors = "%sError with User get_or_create function\n" % errors
-        print(e)
-        return (False, errors)
+        # Create or retrieve user
+        user, created_user = User.objects.get_or_create(discord_id=user_id)
 
-    try:
+        # Create or retrieve server
+        server, created_server = Server.objects.get_or_create(
+            discord_id=server.id,
+            defaults={
+                'name': server.name
+            }
+        )
+
+        # Create or retrieve link
         link, created_link = Link.objects.get_or_create(
-            url = message_dict['url'],
+            server_id=server,
+            source=message_dict['url'],
             defaults={
                 'user_id': user,
                 'channel_id': channel_id,
-                'server_id': server_id,
                 'description': "Vivamus imperdiet ligula a lacus congue eleifend id at dui. Cras nec tempor dui. Donec urna neque, pulvinar et felis eu, hendrerit dignissim urna. Donec consequat rutrum diam, tincidunt vulputate augue. Quisque lobortis condimentum hendrerit. Praesent id nulla id erat convallis molestie. Praesent risus ante, euismod nec massa id, pharetra commodo sapien.",
                 'title': message_dict['title'],
                 'media_url': 'https://media.mustijamirri.fi/media/wysiwyg/Musti_ja_Mirri/Artikkelit/kissa2.jpg',
-            })
+            }
+        )
+
+        # Create or retrieve tags and make connection to the link
+        for tag in tags:
+            tag = ''.join(e for e in tag if e.isalnum() or e == '-')
+
+            if tag == '':
+                continue
+
+            link.tags.add(Tag.objects.get_or_create(name=tag)[0])
+
     except Exception as e:
-        errors = "%sError with Link get_or_create function\n" % (errors)
+        errors = "%sError at inserting or updating database fields\n" % errors
         print(e)
-        return (False, errors)
+        return False, errors
 
-    for tag in tags:
-        tag = ''.join(e for e in tag if e.isalnum() or e == '-')
-        if tag == '':
-            continue
-        try:
-            saved_tag, created_tag = Tag.objects.get_or_create(
-                tag_name = tag,
-                link_id = link
-                )
-            if not created_tag:
-                errors = "%s%s-tag has already been attached to this link\n" %(errors, tag)
-        except Exception as e:
-            errors = "%sError with Tag get_or_create function\n" % (errors)
-            print(e)
-            return (False, errors)
-
-    if not created_link:
-        errors = "%sThe link is already in the database, added new tags\n" % (errors)
-        return (False, errors)
-    return (True, errors)
+    return True, errors
