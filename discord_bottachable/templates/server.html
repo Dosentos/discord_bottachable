@@ -3,7 +3,7 @@
 
 {% block navigation %}
 <nav class="navbar sticky-top navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#">Discord-Bottachable</a>
+    <a class="navbar-brand" href="#">{{ server_name }}</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
         aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -38,8 +38,7 @@
 <div class="row">
     {% if links.count == 0 %}
         <h2>Looks like I haven't collected any links for this server.</h2>
-        <p>If I'm not yet invited to your server, click <a href="#">here</a>
-        to invite me!</p>
+        <p>You can start by using <pre>!link</pre> command.</p>
     {% else %}
         {% for l in links %}
         <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">

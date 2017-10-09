@@ -3,8 +3,18 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">
-        <h1>Hello World</h1>
-    </div>
+    <h1>Hello World</h1>
+    {% if servers.count == 0 %}
+        <h2>Looks like I'm not in any server yet :(</h2>
+        <p>Click <a href="#">here</a> to add me to your own server!</p>
+    {% else %}
+        <h2>I'm currently collecting links for these servers:</h2>
+        <ul>
+            {% for s in servers %}
+                <li><a href="./{{ s.discord_id }}">{{ s.name }}</a></li>
+            {% endfor %}
+        </ul>
+        <p>Click <a href="#">here</a> to add me to your own server!</p>
+    {% endif %}
 </div>
 {% endblock %}
