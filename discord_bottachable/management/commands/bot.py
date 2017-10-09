@@ -1,6 +1,6 @@
 from discord_bottachable import settings
 from django.core.management.base import BaseCommand
-from discord_bottachable.models import User, Link, Tag
+from discord_bottachable.models import User, Link, Tag, Server
 from pprint import pprint
 
 import asyncio
@@ -169,18 +169,25 @@ def link_to_db(user_id, channel_id, server_id, message_dict, errors):
     try:
         # Create or retrieve user
         user, created_user = User.objects.get_or_create(discord_id=user_id)
+
+        # Create or retrieve server
+        server, created_server = Server.objects.get_or_create(
+            discord_id=server_id)
+
         # Create or retrieve link
-        link, created_link = Link.objects.update_or_create(
+        link, created_link = Link.objects.get_or_create(
+            server_id=server,
             source=message_dict['url'],
             defaults={
                 'user_id': user,
                 'channel_id': channel_id,
-                'server_id': server_id,
+                'server_id': server,
                 'description': "Vivamus imperdiet ligula a lacus congue eleifend id at dui. Cras nec tempor dui. Donec urna neque, pulvinar et felis eu, hendrerit dignissim urna. Donec consequat rutrum diam, tincidunt vulputate augue. Quisque lobortis condimentum hendrerit. Praesent id nulla id erat convallis molestie. Praesent risus ante, euismod nec massa id, pharetra commodo sapien.",
                 'title': message_dict['title'],
                 'media_url': 'https://media.mustijamirri.fi/media/wysiwyg/Musti_ja_Mirri/Artikkelit/kissa2.jpg',
             }
         )
+
         # Create or retrieve tags and make connection to the link
         for tag in tags:
             tag = ''.join(e for e in tag if e.isalnum() or e == '-')
