@@ -101,7 +101,7 @@ def handle_link(message):
         message_dict = split_link_message(msg)
 
         if message_dict['url'] != '':
-            saved, errors = link_to_db(message.author.id, message.channel.id, message.server.id, message_dict, errors)
+            saved, errors = link_to_db(message.author.id, message.channel.id, message.server, message_dict, errors)
 
             if saved:
                 print("url: %s\ntitle: %s\ntags: %s" %(message_dict['url'],message_dict['title'],message_dict['tags']))
@@ -157,7 +157,7 @@ def split_link_message(msg):
     return message_dict
 
 # This function saves a link to database
-def link_to_db(user_id, channel_id, server_id, message_dict, errors):
+def link_to_db(user_id, channel_id, server, message_dict, errors):
 
     tags = message_dict['tags'].split(",")
 
@@ -172,7 +172,11 @@ def link_to_db(user_id, channel_id, server_id, message_dict, errors):
 
         # Create or retrieve server
         server, created_server = Server.objects.get_or_create(
-            discord_id=server_id)
+            discord_id=server.id,
+            defaults={
+                'name': server.name
+            }
+        )
 
         # Create or retrieve link
         link, created_link = Link.objects.get_or_create(
