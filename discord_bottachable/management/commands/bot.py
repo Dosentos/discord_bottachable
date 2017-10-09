@@ -185,7 +185,6 @@ def link_to_db(user_id, channel_id, server, message_dict, errors):
             defaults={
                 'user_id': user,
                 'channel_id': channel_id,
-                'server_id': server,
                 'description': "Vivamus imperdiet ligula a lacus congue eleifend id at dui. Cras nec tempor dui. Donec urna neque, pulvinar et felis eu, hendrerit dignissim urna. Donec consequat rutrum diam, tincidunt vulputate augue. Quisque lobortis condimentum hendrerit. Praesent id nulla id erat convallis molestie. Praesent risus ante, euismod nec massa id, pharetra commodo sapien.",
                 'title': message_dict['title'],
                 'media_url': 'https://media.mustijamirri.fi/media/wysiwyg/Musti_ja_Mirri/Artikkelit/kissa2.jpg',
