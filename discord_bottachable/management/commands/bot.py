@@ -8,9 +8,11 @@ import discord
 import re
 
 client = discord.Client()
+
 class Command(BaseCommand):
     help = 'discord-bottachable runner management command'
 
+    # This runs forever listening all the authorized servers
     def handle(self, *args, **kwargs):
         client.run(settings.DISCORD_BOT_TOKEN)
 
@@ -23,6 +25,8 @@ async def on_ready():
     print(client.user.id)
     print('------')
 
+# This function is triggered whenever the authorized server captures any message
+# In here happens all the magic...
 @client.event
 async def on_message(message):
     if message.content.startswith('!test'):
@@ -96,7 +100,6 @@ async def on_message(message):
 def handle_link(message):
     errors = '-----------ERRORS-----------\n'
     msg = re.sub('\!link', '', message.content)
-    # msg = message.content.strip('!link')
     if 'http://' in msg or 'https://' in msg or 'www.' in msg:
         message_dict = split_link_message(msg)
 

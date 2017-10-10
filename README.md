@@ -2,6 +2,42 @@
 
 Discord bot that gathers all links shared in the specified channel and posts them to website
 
+## Bot features
+
+### Discord commands for standard user
+- !link
+  - Purpose: Saves a link to the database and publishes it on the website
+  - Syntax: `!link [url] tags: [your,tags] title: [your title]`
+  - Example: `!link https://discord-bottachable.herokuapp.com tags: discord, bottachable, bot, amazing, cool, attachment title: The front page of Discord-bottachable`
+  - `[url]` &mdash; __required__
+  - `tags: your, tags` &mdash; __optional__
+  - `title: Your Title` &mdash; __optional__
+
+- !test
+  - Purpose: Tells you how many messages have you written among 100 last messages in current channel (discord.py example bot feature)
+  - Syntax: `!test`
+  - Example: `!test`
+
+- !sleep
+  - Purpose: waits five seconds and prints you response
+  - Syntax:  `!sleep`
+  - Example: `!sleep`
+
+### Discord commands for admins
+- !admin_dump_users
+  - prints all users in DB to console
+- !admin_dump_links
+  - prints all links in DB to console
+- !admin_dump_tags
+  - prints all tags in DB to console
+
+- !admin_delete_all_users
+  - deletes all users in DB
+- !admin_delete_all_links
+  - deletes all links in DB
+- !admin_delete_all_tags
+  - deletes all tags in DB
+
 ## Instructions for development
 - When you pull new code, run `pip install -r requirements.txt` if there's new requirements added to project
 - If you install more PIP packages, remember to run `pip freeze > requirements.txt` to save them in requirements
@@ -52,42 +88,3 @@ Discord bot that gathers all links shared in the specified channel and posts the
 
 4. Run server
     > Note: If you need to use print for debugging, say, views.py then use `python manage.py runserver`
-
-# Heroku starter Template
-
-An utterly fantastic project starter template for Django 1.11.
-
-## Features
-
-- Production-ready configuration for Static Files, Database Settings, Gunicorn, etc.
-- Enhancements to Django's static file serving functionality via WhiteNoise.
-- Latest Python 3.6 runtime environment. 
-
-## How to Use
-
-To use this project, follow these steps:
-
-1. Create your working environment.
-2. Install Django (`$ pip install django`)
-3. Create a new project using this template
-
-## Creating Your Project
-
-Using this template to create a new Django app is easy::
-
-    $ django-admin.py startproject --template=https://github.com/heroku/heroku-django-template/archive/master.zip --name=Procfile helloworld
-
-(If this doesn't work on windows, replace `django-admin.py` with `django-admin`)
-
-You can replace ``helloworld`` with your desired project name.
-
-## Deployment to Heroku
-- After making changes to models.py and pushing to heroku, you have to run command `heroku run python manage.py migrate`
-
-## License: MIT
-
-## Further Reading
-
-- [Gunicorn](https://warehouse.python.org/project/gunicorn/)
-- [WhiteNoise](https://warehouse.python.org/project/whitenoise/)
-- [dj-database-url](https://warehouse.python.org/project/dj-database-url/)
