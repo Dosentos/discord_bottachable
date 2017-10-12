@@ -58,6 +58,23 @@
             </div>
         </div>
         {% endfor %}
+
+        <!-- PAGINATION EXAMPLE -->
+        <div class="pagination">
+            <div class="step-links">
+                {% if links.has_previous %}
+                    <a href="?page={{ links.previous_page_number }}">Previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ links.number }} of {{ links.paginator.num_pages }}.
+                </span>
+
+                {% if links.has_next %}
+                    <a href="?page={{ links.next_page_number }}">next</a>
+                {% endif %}
+            </div>
+        </div>
     {% endif %}
 </div>
 {% endblock %}
