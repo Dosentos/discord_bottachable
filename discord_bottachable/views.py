@@ -2,6 +2,10 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from discord_bottachable.models import Server, Link
 
+import logging
+
+# Create an instance of logger
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 def index(request):

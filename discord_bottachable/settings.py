@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 import dj_database_url
-
+import raven
 # Project specified settings from local settings / environment veriables
 DISCORD_BOT_TOKEN = os.environ.get('DISCORD_BOT_TOKEN', None)
 
@@ -19,20 +19,84 @@ DISCORD_BOT_TOKEN = os.environ.get('DISCORD_BOT_TOKEN', None)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
-
-
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "foo"
+SECRET_KEY = os.environ.get('SECRET_KEY', None)
+
+# Admin information for logging
+ADMINS = (('Admin1','dosentti.dev@gmail.com'))
+MANAGERS = ADMINS
+
+#Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'formatters': {
+        'simple': {
+            'format': '[%(asctime)s] %(levelname)s %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+        'verbose': {
+            'format': '[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'development_logfile': {
+            'level': 'INFO',
+            'filters': ['require_debug_true'],
+            'class': 'logging.FileHandler',
+            'filename': PROJECT_ROOT +'/tmp/django_dev.log',
+            'formatter': 'simple'
+        },
+        'sentry': {
+            'level': 'WARNING',
+            'filters': ['require_debug_false'],
+            'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
+        },
+    },
+    'root': {
+        'level': 'DEBUG',
+        'handlers': ['console'],
+    },
+    'loggers': {
+        'discord_bottachable': {
+            'handlers': ['sentry', 'console', 'development_logfile'],
+            'propagate': False,
+         },
+        'django': {
+            'handlers': ['development_logfile', 'console', 'sentry'],
+            'propagate': False,
+        },
+        'py.warnings': {
+            'handlers': ['development_logfile', 'console', 'sentry'],
+            'propagate': False,
+        },
+    }
+}
+
+
+# Sentry settings (RAVEN CONFIG IN THE BOTTOM OF THE FILE)
+SENTRY_KEY = os.environ.get('SENTRY_KEY', None)
+
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -44,7 +108,8 @@ INSTALLED_APPS = [
     # http://whitenoise.evans.io/en/stable/django.html#using-whitenoise-in-development
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
-    'discord_bottachable'
+    'discord_bottachable',
+    'raven.contrib.django.raven_compat',
 ]
 
 MIDDLEWARE = [
@@ -143,3 +208,10 @@ try:
   from local_settings import *
 except ImportError:
   pass
+
+RAVEN_CONFIG = {
+    'dsn': 'https://%s@sentry.io/230348' % (SENTRY_KEY),
+    # If you are using git, you can also automatically configure the
+    # release based on the git info.
+    'release': raven.fetch_git_sha(os.path.dirname(os.pardir)),
+}
