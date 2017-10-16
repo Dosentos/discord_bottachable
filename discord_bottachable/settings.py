@@ -63,7 +63,7 @@ LOGGING = {
             'filters': ['require_debug_true'],
             'class': 'logging.FileHandler',
             'filename': PROJECT_ROOT +'/tmp/django_dev.log',
-            'formatter': 'verbose'
+            'formatter': 'simple'
         },
         'sentry': {
             'level': 'WARNING',
@@ -77,7 +77,7 @@ LOGGING = {
     },
     'loggers': {
         'discord_bottachable': {
-            'handlers': ['sentry', 'console'],
+            'handlers': ['sentry', 'console', 'development_logfile'],
             'propagate': False,
          },
         'django': {
