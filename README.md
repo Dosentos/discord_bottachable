@@ -70,8 +70,11 @@ Discord bot that gathers all links shared in the specified channel and posts the
         # Whether or not you should see proper error messages on the site when error happens
         DEBUG = True
 
-        # Discord authentication stuff
-        DISCORD_BOT_TOKEN = = ''
+        # Discord authentication stuff (add your token here)
+        DISCORD_BOT_TOKEN = ''
+
+        # As default sentry is disabled in debug mode so sentry key can be empty string
+        SENTRY_KEY = ''
         ```
 
 ### Setting up mock data for UI
@@ -83,6 +86,7 @@ Discord bot that gathers all links shared in the specified channel and posts the
 3. Load mock data
     - `python manage.py loaddata users.json`
     - `python manage.py loaddata tags.json`
+    - `python manage.py loaddata servers.json`
     - `python manage.py loaddata links.json`
     > Note: Make sure `models.py` contains all the fields
 
