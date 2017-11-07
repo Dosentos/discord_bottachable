@@ -4,14 +4,40 @@
 {% block jumbotron %}
 <div class="jumbotron jumbotron-fluid">
   <div class="container">
-    <h1 class="display-3">Discord Bottachable</h1>
-    <p class="lead">asdasdsad</p>
+	<img class="img-fluid" src="/static/bottachable_logo2.png"/>
   </div>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="row">
+	<div class="col-sm">
+		<h1>About Bottachable</h1>
+		<p>Developed as a school project in Tampere University of Applied Sciences,
+		Finland, Discord Bottachable is an open source bot / web site for easily collecting and viewing
+		desired links from Discord chat.</p>
+		<p>Links are collected to a database using a bot command and listed on a server specific website.
+		The links can be given tags for searching by topic.</p>
+	</div>
+	<div class="col-sm">
+		<h2>Want Bottachable on your Discord server?</h2>
+		<p>Ohjeita Lorem ipsum dolor sit amet, consectetur
+		adipiscing elit. Nunc maximus, nulla ut commodo sagittis,
+		sapien dui mattis dui, non pulvinar lorem felis nec erat. Aliquam egestas,
+		velit at condimentum placerat, sem sapien laoreet mauris, dictum porttitor lacus est nec enim.
+		Vivamus feugiat elit lorem, eu porttitor ante ultrices id. Phasellus suscipit tellus ante, nec dignissim
+		elit imperdiet nec. Nullam fringilla feugiat nisl. Ut pretium, metus venenatis dictum viverra, dui metus finibus
+		enim, ac rhoncus sem lorem vitae mauris. Suspendisse </p>
+		
+	{% if servers.count == 0 %}
+        <h2>Discord Bottachable is currently not in use on any server.</h2>
+		{% else %}
+        <h2>Discord Bottachable is currently in use on {{servers.count}} server(s).</h2>
+    {% endif %}
+		<p>Click <a href="#">here</a> to add me to your own server!</p>
+		
+	</div>
+	<!---
     {% if servers.count == 0 %}
         <h2>Looks like I'm not in any server yet :(</h2>
         <p>Click <a href="#">here</a> to add me to your own server!</p>
@@ -24,5 +50,7 @@
         </ul>
         <p>Click <a href="#">here</a> to add me to your own server!</p>
     {% endif %}
+	--->
 </div>
+<hr/>
 {% endblock %}
