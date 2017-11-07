@@ -1,0 +1,8 @@
+#indexJumbotronLogo{
+	max-width: 299px;
+}
+@media screen and (min-width: 576px) {
+	#indexContent-left{
+		border-right: 1px solid rgba(0, 0, 0, .1);
+	}
+}
