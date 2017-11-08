@@ -1,8 +1,10 @@
+from bs4 import BeautifulSoup
 from discord_bottachable import settings
 from django.core.management.base import BaseCommand
 from discord_bottachable.models import User, Link, Tag, Server
 from pprint import pprint
 
+import urllib.request
 import asyncio
 import discord
 import logging
@@ -29,6 +31,13 @@ async def on_ready():
 # In here happens all the magic...
 @client.event
 async def on_message(message):
+    await handle_messages(message)
+
+@client.event
+async def on_message_edit(before, after):
+    await handle_messages(after)
+
+async def handle_messages(message):
     if message.content.startswith('!test'):
         counter = 0
         tmp = await client.send_message(message.channel, 'Calculating messages...')
@@ -42,6 +51,8 @@ async def on_message(message):
         await client.send_message(message.channel, 'Done sleeping')
 
     elif message.content.startswith('!link'):
+        message_saved = False
+        error_message = ''
         message_saved, error_message = handle_link(message)
         if message_saved:
             await client.send_message(message.channel, "Thank you, link published on discord-bottachable.discordapp.com")
@@ -103,10 +114,9 @@ def handle_link(message):
     msg = re.sub('\!link', '', message.content)
     if 'http://' in msg or 'https://' in msg or 'www.' in msg:
         message_dict = split_link_message(msg)
-
+        message_dict.update(get_embeds(message.embeds))
         if message_dict['url'] != '':
             saved, errors = link_to_db(message.author.id, message.channel.id, message.server, message_dict)
-
             if saved:
                 return (True, errors)
         else:
@@ -125,7 +135,7 @@ def split_link_message(msg):
     title = False
     tags = False
     url_set = False
-    logger.info(msg)
+    logger.info("Message: %s" % (msg))
     splitted_message = re.split('(tags:|title:)', msg)
 
     for part in splitted_message:
@@ -149,28 +159,35 @@ def split_link_message(msg):
                 message_dict['title'] = "%s %s" %(message_dict['title'], part)
 
             elif tags:
+                part = part.lower()
                 if message_dict['tags'] == '':
                     message_dict['tags'] = part
                 else:
                     message_dict['tags'] = "%s,%s" %(message_dict['tags'], part)
 
-    message_dict['url'] = message_dict['url'].strip(" ")
+    message_dict['url'] = message_dict['url'].strip(' ')
     message_dict['title'] = message_dict['title'].strip(' ')
     message_dict['tags'] = message_dict['tags'].strip(' ')
-    logger.info("#%s#" % (message_dict['tags']))
     return message_dict
 
 # This function saves a link to database
 def link_to_db(user_id, channel_id, server, message_dict):
     errors = ''
-    if message_dict['tags'] == '':
-        message_dict['tags'] = 'Untagged'
 
-    if message_dict['title'] == '':
-        message_dict['title'] = 'Lorem Ipsum Title'
+    if message_dict['provider'] not in message_dict['tags'] and message_dict['provider'] != '':
+        if message_dict['tags'] == '':
+            message_dict['tags'] =  message_dict['provider']
+        else:
+            message_dict['tags'] = "%s,%s" % (message_dict['tags'], message_dict['provider'])
+    elif message_dict['tags'] == '':
+        message_dict['tags'] = 'untagged'
 
     tags = message_dict['tags'].split(",")
 
+    if message_dict['title'] == '':
+        message_dict['title'] = findTitle(message_dict['url'])
+    if message_dict['description'] == '':
+        pass
     try:
         # Create or retrieve user
         user, created_user = User.objects.get_or_create(discord_id=user_id)
@@ -190,19 +207,17 @@ def link_to_db(user_id, channel_id, server, message_dict):
             defaults={
                 'user_id': user,
                 'channel_id': channel_id,
-                'description': "Vivamus imperdiet ligula a lacus congue eleifend id at dui. Cras nec tempor dui. Donec urna neque, pulvinar et felis eu, hendrerit dignissim urna. Donec consequat rutrum diam, tincidunt vulputate augue. Quisque lobortis condimentum hendrerit. Praesent id nulla id erat convallis molestie. Praesent risus ante, euismod nec massa id, pharetra commodo sapien.",
+                'description':message_dict['description'],
                 'title': message_dict['title'],
-                'media_url': 'https://media.mustijamirri.fi/media/wysiwyg/Musti_ja_Mirri/Artikkelit/kissa2.jpg',
+                'media_url': message_dict['media_url'],
             }
         )
 
         # Create or retrieve tags and make connection to the link
         for tag in tags:
             tag = ''.join(e for e in tag if e.isalnum() or e == '-')
-
             if tag == '':
                 continue
-
             link.tags.add(Tag.objects.get_or_create(name=tag)[0])
 
     except Exception as e:
@@ -210,6 +225,49 @@ def link_to_db(user_id, channel_id, server, message_dict):
         errors = ("%s%s\n" % (errors, e.message))
         return False, errors
 
-    logger.info("Saved! url: %s\ntitle: %s\ntags: %s" %(message_dict['url'],message_dict['title'],message_dict['tags']))
+    logger.info("Saved!\n url: '%s', title: '%s', tags: '%s', description: '%s', media_url: '%s', " %(message_dict['url'],message_dict['title'],message_dict['tags'],message_dict['description'],message_dict['media_url']))
     logger.info("----------")
     return True, errors
+
+# This function saves the specific embeds to embeds_dicts and returns them
+def get_embeds(embeds):
+    logger.info(embeds)
+    embeds_dict = {'description':'', 'media_url':'','title':'', 'provider':''}
+    for e in embeds:
+        if 'description'  in e:
+            embeds_dict['description'] = e['description']
+        else:
+            logger.info('Embeds have no description!')
+
+        if 'title' in e:
+            embeds_dict['title'] = e['title']
+        else:
+            logger.info('Embeds have no title!')
+
+        if 'video' in e and 'url' in e['video']:
+            embeds_dict['media_url'] = e['video']['url']
+        elif 'thumbnail' in e and 'url' in e['thumbnail']:
+            embeds_dict['media_url'] = e['thumbnail']['url']
+        else:
+            logger.info('Embeds have no thumbnail or thumbnail url!')
+
+        if 'provider' in e and  'name' in e['provider']:
+            embeds_dict['provider'] = e['provider']['name'].lower().strip(' ')
+        else:
+            logger.info('Embeds have no provider name')
+
+    return embeds_dict
+
+# This function is called if no title has been found elsewhere. 
+# It simply tries to find the title from the website in the url
+def findTitle(url):
+    # Get the html from the url
+    webpage = urllib.request.urlopen(url).read()
+    # Create an instance of beautifulSoup
+    soup = BeautifulSoup(webpage, 'html.parser')
+    # Find title tag
+    if soup.title:
+        title = soup.title.string
+    else:
+        title = 'Untitled'
+    return title
