@@ -27,8 +27,13 @@
                 <a class="nav-link" href="#">#Channel</a>
             </li>
         </ul>
-        <form class="form-inline my-2 my-lg-0">
-            <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+        <form class="form-inline my-2 my-lg-0" method="POST">
+            {% csrf_token %}
+            <input 
+                name="keywords" class="form-control mr-sm-2" 
+                type="text" placeholder="Search" aria-label="Search" 
+                value="{{current_keywords|addSpaces}}" 
+            />
             <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
         </form>
     </div>
@@ -54,19 +59,11 @@
                     </a>
                     <p class="card-text">{{l.description}}</p>
                     {% for t in l.tags.all %}
-                        {% if t.name not in tags and tags|length > 0 %}
-                            <a href="/{{server_id}}/tags/{{current_tags}},{{t.name}}">
+                        {% with link=tag_links|get_item:l.id %}
+                            <a href="/{{server_id}}/{{link|get_item:t.id}}">
                                 <span class="badge badge-pill badge-secondary">{{t.name}}</span>
                             </a>
-                        {% elif t.name in tags and tags|length > 0 %}
-                            <a href="/{{server_id}}/tags/{{current_tags}}">
-                                <span class="badge badge-pill badge-secondary">{{t.name}}</span>
-                            </a>
-                        {% else %}
-                            <a href="/{{server_id}}/tags/{{t.name}}">
-                                <span class="badge badge-pill badge-secondary">{{t.name}}</span>
-                            </a>
-                        {% endif %}
+                        {% endwith %}
                     {% endfor %}
                 </div>
             </div>

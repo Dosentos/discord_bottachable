@@ -20,7 +20,39 @@ import discord_bottachable.views
 
 urlpatterns = [
     url(r'^$', discord_bottachable.views.index, name='index'),
-    url(r'^(?P<server_id>[0-9]+)/(?:tags/(?P<tags>(\w(,\w)*)*))?$', discord_bottachable.views.server,
-        name='server'),
-    url(r'^admin/', admin.site.urls),
+    url(
+        r'^(?P<server_id>[0-9]+)/$', 
+        discord_bottachable.views.server,
+        name='server'
+    ),
+    url(
+        r'^(?P<server_id>[0-9]+)/tags/$',
+        discord_bottachable.views.server,
+        name='server'
+    ),
+    url(
+        r'^(?P<server_id>[0-9]+)/tags/(?P<tags>(\w(-)*)+(,(\w(-)*)+)*)$',
+        discord_bottachable.views.server,
+        name='server'
+    ),
+    url(
+        r'^(?P<server_id>[0-9]+)/search/$',
+        discord_bottachable.views.server,
+        name='server'
+    ),
+    url(
+        r'^(?P<server_id>[0-9]+)/search/(?P<keywords>(\w(-)*( )*)+(,(\w(-)*( )*)+)*)/$',
+        discord_bottachable.views.server,
+        name='server'
+    ),
+    url(
+        r'^(?P<server_id>[0-9]+)/search/(?P<keywords>(\w(-)*( )*)+(,(\w(-)*( )*)+)*)/tags/$',
+        discord_bottachable.views.server,
+        name='server'
+    ),
+    url(
+        r'^(?P<server_id>[0-9]+)/search/(?P<keywords>(\w(-)*( )*)+(,(\w(-)*( )*)+)*)/tags/(?P<tags>(\w(-)*)+(,(\w(-)*)+)*)$',
+        discord_bottachable.views.server,
+        name='server'
+    ),
 ]
