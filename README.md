@@ -86,9 +86,10 @@ Discord bot that gathers all links shared in the specified channel and posts the
     - `python manage.py makemigrations`
     - `python manage.py migrate`
 3. Load mock data
+    - `python manage.py loaddata servers.json`
     - `python manage.py loaddata users.json`
     - `python manage.py loaddata tags.json`
-    - `python manage.py loaddata servers.json`
+    - `python manage.py loaddata channels.json`
     - `python manage.py loaddata links.json`
     > Note: Make sure `models.py` contains all the fields
 
