@@ -11,7 +11,9 @@ media
 
 # If your build process includes running collectstatic, then you probably don't need or want to include staticfiles/
 # in your Git repository. Update and uncomment the following line accordingly.
-discord_bottachable/staticfiles/
+discord_bottachable/staticfiles/admin
+discord_bottachable/staticfiles/staticfiles.json
+discord_bottachable/staticfiles/humans.d*
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
