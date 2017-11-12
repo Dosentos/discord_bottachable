@@ -82,7 +82,6 @@ function OkayNav(target, rawopts) {
 			}
 		}, 16);
 	}, true);
-	console.log(self)
 	// call resize event
 	self.recalculate();
 };
@@ -98,16 +97,12 @@ OkayNav.prototype.recalculate = function recalculate() {
 
 		// get the difference
 		var width = getMeasureWidth(self);
-		console.log("self.padding: ",self.padding)
-		console.log("width: ",width)
 		// if the difference is small
 		if (width < self.padding) {
-			console.log("it is small")
 			var hasToggle = self.toggle.hasAttribute('aria-hidden');
 
 			while (self.items.length && width < self.padding) {
 				var lastChild = self.items.pop();
-				console.log(lastChild)
 				if (hasToggle) {
 					self.toggle.removeAttribute('aria-hidden');
 
@@ -133,7 +128,6 @@ OkayNav.prototype.recalculate = function recalculate() {
 				}
 			}
 		} else {
-			console.log("it is big")
 			// if there are items to restore
 			if (self.overflowItems.length) {
 				// while there are hidden items and the difference is greater than the width of the most recent hidden item
