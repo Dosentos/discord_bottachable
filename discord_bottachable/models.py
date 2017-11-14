@@ -24,7 +24,7 @@ class Server(models.Model):
 class Channel(models.Model):
     discord_id = models.CharField(max_length=64)
     server_id = models.ForeignKey('Server')
-    listen = models.PositiveSmallIntegerField()
+    listen = models.SmallIntegerField()
     name = models.CharField(max_length=100)
 
     def __str__(self):
@@ -36,18 +36,23 @@ class Channel(models.Model):
 
 
 class User(models.Model):
-    server_id = models.ForeignKey('Server')
     discord_id = models.CharField(max_length=64)
     username = models.CharField(max_length=128)
-    rank = models.PositiveSmallIntegerField()
 
     def __str__(self):
         return (
             "Discord id: {0}\n"
-            "Server id: {1}\n"
-            "Name: {2}\n"
-            "Rank: {3}\n"
-        ).format(self.discord_id, self.server_id.id, self.username, self.rank)
+            "Name: {1}\n"
+        ).format(self.discord_id, self.username)
+
+
+class Role(models.Model):
+    server_id = models.ForeignKey('Server')
+    user_id = models.ForeignKey('User')
+    rank = models.PositiveSmallIntegerField()
+
+    def __str__(self):
+        return "Rank: {0}\n".format(self.rank)
 
 
 class Tag(models.Model):
