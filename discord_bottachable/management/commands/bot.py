@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from discord_bottachable import settings
 from django.core.management.base import BaseCommand
-from discord_bottachable.models import User, Link, Tag, Server, Channel
+from discord_bottachable.models import User, Role, Link, Tag, Server, Channel
 from pprint import pprint
 from datetime import datetime
 
@@ -41,15 +41,24 @@ async def on_message_edit(before, after):
 
 
 # Creates appropriate Discord message from given query set.
-def create_log_msg(message, querySet):
+def create_log_msg(message, querySet, server = None):
     d = datetime.now()
     msg = (
         "```RESULTS FOR \"{0}:{1}\" ({2})\n"
     ).format(message.author.name,message.content,d.strftime("%d/%m/%Y %H:%M"))
     msg += "---------------------------------------------------\n"
-    
+
     for obj in querySet:
-        msg += "{0}----------\n".format(str(obj))
+        msg += "{0}".format(str(obj))
+        if isinstance(obj, User):
+            # If listing user instances: find user rank in the server
+            roles = Role.objects.filter(
+                server_id=server,
+                user_id=obj
+            )
+            if len(roles) > 0:
+                msg += "{0}".format(str(roles[0]))
+        msg += "----------\n"
 
     msg += "---------------------------------------------------\n"
     msg += "{0} total matches in the database.".format(len(querySet))
@@ -61,7 +70,7 @@ def create_log_msg(message, querySet):
 async def handle_admin_commands(rows, message):
    
     # Check has the message sender admin privileges in the server
-    if rows['user'].rank < 1:
+    if rows["role"].rank < 1:
         return False
 
     dest = message.channel
@@ -99,13 +108,14 @@ async def handle_admin_commands(rows, message):
         await client.send_message(dest, msg)
         return True
     elif message.content.startswith('!dump_users'):
-        users = User.objects.filter(server_id=rows['server'])
+        member_ids = [m.id for m in message.server.members]
+        users = User.objects.filter(discord_id__in=member_ids)
         msg = (
             "There are {0} users in the database "
             "for this server. {1}"
         ).format(len(users), chann_msg)
         if verbose:
-            msg = create_log_msg(message, users)
+            msg = create_log_msg(message, users, rows["server"])
         await client.send_message(dest, msg)
         return True
     elif message.content.startswith('!dump_links'):
@@ -129,13 +139,6 @@ async def handle_admin_commands(rows, message):
         if verbose:
             msg = create_log_msg(message, tags)
         await client.send_message(dest, msg)
-        return True
-    elif message.content.startswith('!delete_all_users'):
-        User.objects.filter(server_id=rows['server']).delete()
-        await client.send_message(
-            dest,
-            "<@{0}> deleted all users.".format(message.author.id)
-        )
         return True
     elif message.content.startswith('!delete_all_links'):
         Link.objects.filter(server_id=rows['server']).delete()
@@ -185,10 +188,26 @@ def get_database_rows(message):
         # Create or retrieve sender's row from the database
         data["user"], data["created_user"] = User.objects.get_or_create(
             discord_id=message.author.id,
-            server_id=data['server'],
             defaults={
-                'username': message.author.name,
-                'rank': 0
+                'username': message.author.name
+            }
+        )
+
+        # Update username if it's changed
+        if not data["created_user"]\
+        and data["user"].username != message.author.name:
+            data["user"].username = message.author.name
+            data["user"].save()
+        
+        is_owner = message.author.id == message.server.owner.id
+        
+        # Create or retrieve sender's role row from the database
+        # Server's owner gets automatically higher rank 
+        data["role"], data["created_role"] = Role.objects.get_or_create(
+            server_id=data["server"],
+            user_id=data["user"],
+            defaults={
+                "rank": 2 if is_owner else 0
             }
         )
 
