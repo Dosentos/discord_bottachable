@@ -175,16 +175,6 @@ def get_database_rows(message):
             }
         )
 
-        # Create or retrieve message's channel row from the database
-        data["channel"], data["created_channel"] = Channel.objects.get_or_create(
-            discord_id=message.channel.id,
-            server_id=data['server'],
-            defaults={
-                'listen': 0,
-                'name': message.channel.name
-            }
-        )
-
         # Create or retrieve sender's row from the database
         data["user"], data["created_user"] = User.objects.get_or_create(
             discord_id=message.author.id,
@@ -223,6 +213,10 @@ async def handle_messages(message):
     
     # Exit if message is DM
     if message.server is None:
+        return
+
+    # Exit if not command
+    if not message.content[0] == "!":
         return
     
     rows = get_database_rows(message)
@@ -270,7 +264,8 @@ def handle_link(message, rows):
                 message.channel.id,
                 message.server,
                 message_dict,
-                rows
+                rows,
+                message
             )
             if saved:
                 return (True, errors)
@@ -326,7 +321,7 @@ def split_link_message(msg):
     return message_dict
 
 # This function saves a link to database
-def link_to_db(user_id, channel_id, server, message_dict, rows):
+def link_to_db(user_id, channel_id, server, message_dict, rows, message):
     errors = ''
 
     if message_dict['provider'] not in message_dict['tags'] and message_dict['provider'] != '':
@@ -344,13 +339,23 @@ def link_to_db(user_id, channel_id, server, message_dict, rows):
     if message_dict['description'] == '':
         pass
     try:
+        # Create or retrieve message's channel row from the database
+        channel, created_channel = Channel.objects.get_or_create(
+            discord_id=message.channel.id,
+            server_id=rows['server'],
+            defaults={
+                'listen': 0,
+                'name': message.channel.name
+            }
+        )
+
         # Create or retrieve link
         link, created_link = Link.objects.get_or_create(
             server_id=rows['server'],
             source=message_dict['url'],
             defaults={
                 'user_id': rows['user'],
-                'channel_id': rows['channel'],
+                'channel_id': channel,
                 'description':message_dict['description'],
                 'title': message_dict['title'],
                 'media_url': message_dict['media_url'],
