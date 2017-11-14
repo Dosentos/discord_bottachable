@@ -3,7 +3,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpResponse
 from django.template.defaulttags import register
 from django.db.models import Q
-from discord_bottachable.models import Server, Link
+from discord_bottachable.models import Server, Link, Channel
 
 import logging
 from collections import OrderedDict
@@ -23,19 +23,25 @@ def addSpaces(str):
 def index(request):
     return render(request, 'index.html', {'servers': Server.objects.all()})
 
-def server(request, server_id, tags='', keywords=''):
+def server(request, server_id, channel_name='', tags='', keywords=''):
     if request.method == 'POST':
-        return redirect(getRedirectUrl(request, server_id, tags, keywords))
+        return redirect(getRedirectUrl(request, server_id, tags, keywords, channel_name))
     else:
-        keywords = str_to_array(keywords, ',')
         s = get_object_or_404(Server, discord_id=server_id)
         all_links = Link.objects.filter(server_id=s)
+        
+        channels = Channel.objects.filter(server_id=s.id)
 
-        tags = str_to_array(tags, ',')
+        if len(channel_name) > 0:
+            all_links = filterByChannel(all_links, channels, channel_name)
+
+        keywords = str_to_array(keywords, ',')
 
         if len(keywords) > 0:
             all_links = filterByKeywords(all_links, keywords)
         
+        tags = str_to_array(tags, ',')
+
         if len(tags) > 0:
             all_links = filterByTags(all_links, tags)
 
@@ -53,13 +59,14 @@ def server(request, server_id, tags='', keywords=''):
             'links': links,
             'server_id': server_id,
             'server_name': s.name,
+            'channels': channels,
             'tags': tags,
             'current_tags': ','.join(tags),
             'current_keywords': ','.join(keywords),
-            'tag_links': getTagLinks(all_links, server_id, tags, keywords)
+            'tag_links': getTagLinks(all_links, server_id, tags, keywords, channel_name)
         })
 
-def getRedirectUrl(request, server_id, tags, keywords):
+def getRedirectUrl(request, server_id, tags, keywords, channel_name):
     # convert to array
     keywords = str_to_array(request.POST.get('keywords', None), ',')
     # trim every keyword
@@ -70,6 +77,8 @@ def getRedirectUrl(request, server_id, tags, keywords):
 
     url = '/' + server_id + '/'
 
+    if len(channel_name) > 0:
+        url += channel_name + '/'
     if len(keywords) > 0:
         url += 'search/' + keywords + '/'
     if len(tags) > 0:
@@ -77,13 +86,15 @@ def getRedirectUrl(request, server_id, tags, keywords):
 
     return url
 
-def getTagLinks(all_links, server_id, tags, keywords):
+def getTagLinks(all_links, server_id, tags, keywords, channel_name):
     urls = {}
     for l in all_links:
         url = ''
         urls[l.id] = {}
         for t in l.tags.all():
             url = ''
+            if len(channel_name) > 0:
+                url += channel_name + '/'
             if len(keywords) > 0:
                 url = 'search/' + ','.join(keywords) + '/'
             if len(tags) > 0:
@@ -95,6 +106,12 @@ def getTagLinks(all_links, server_id, tags, keywords):
                 url += 'tags/' + t.name
             urls[l.id][t.id] = url
     return urls
+
+def filterByChannel(all_links, channels, channel_name):
+    channel = channels.filter(name=channel_name)
+    if len(channel) > 0:
+        all_links = all_links.filter(channel_id=channel[0].id)
+    return all_links
 
 def filterByKeywords(all_links, keywords):
     for keyword in keywords: 

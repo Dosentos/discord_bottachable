@@ -1,10 +1,11 @@
 [
-  {
-    "model": "discord_bottachable.server",
-    "pk": 1,
-    "fields": {
-      "discord_id": "350529796943642625",
-      "name": "ICT"
-    }
-  }
+	{
+		"model": "discord_bottachable.server",
+		"pk": 1,
+		"fields": {
+			"discord_id": "350529796943642625",
+			"log_channel": null,
+			"name": "ICT"
+		}
+	}
 ]

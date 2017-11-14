@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 import discord_bottachable.views
 
@@ -55,4 +56,40 @@ urlpatterns = [
         discord_bottachable.views.server,
         name='server'
     ),
+    url(
+        r'^(?P<server_id>[0-9]+)/(?P<channel_name>(\w(-)*)+)/$', 
+        discord_bottachable.views.server,
+        name='server'
+    ),
+    url(
+        r'^(?P<server_id>[0-9]+)/(?P<channel_name>(\w(-)*)+)/tags/$',
+        discord_bottachable.views.server,
+        name='server'
+    ),
+    url(
+        r'^(?P<server_id>[0-9]+)/(?P<channel_name>(\w(-)*)+)/tags/(?P<tags>(\w(-)*)+(,(\w(-)*)+)*)$',
+        discord_bottachable.views.server,
+        name='server'
+    ),
+    url(
+        r'^(?P<server_id>[0-9]+)/(?P<channel_name>(\w(-)*)+)/search/$',
+        discord_bottachable.views.server,
+        name='server'
+    ),
+    url(
+        r'^(?P<server_id>[0-9]+)/(?P<channel_name>(\w(-)*)+)/search/(?P<keywords>(\w(-)*( )*)+(,(\w(-)*( )*)+)*)/$',
+        discord_bottachable.views.server,
+        name='server'
+    ),
+    url(
+        r'^(?P<server_id>[0-9]+)/(?P<channel_name>(\w(-)*)+)/search/(?P<keywords>(\w(-)*( )*)+(,(\w(-)*( )*)+)*)/tags/$',
+        discord_bottachable.views.server,
+        name='server'
+    ),
+    url(
+        r'^(?P<server_id>[0-9]+)/(?P<channel_name>(\w(-)*)+)/search/(?P<keywords>(\w(-)*( )*)+(,(\w(-)*( )*)+)*)/tags/(?P<tags>(\w(-)*)+(,(\w(-)*)+)*)$',
+        discord_bottachable.views.server,
+        name='server'
+    ),
 ]
+urlpatterns += staticfiles_urlpatterns()
