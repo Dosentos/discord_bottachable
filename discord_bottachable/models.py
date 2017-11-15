@@ -9,23 +9,57 @@ class Server(models.Model):
     log_channel = models.ForeignKey('Channel',null=True)
     name = models.CharField(max_length=128)
 
+    def __str__(self):
+        return (
+            "Discord id: {0}\n"
+            "Log channel: {1}\n"
+            "Name: {2}\n"
+        ).format(
+            self.discord_id,
+            ("None" if self.log_channel is None else self.log_channel.name),
+            self.name
+        )
+
 
 class Channel(models.Model):
     discord_id = models.CharField(max_length=64)
     server_id = models.ForeignKey('Server')
-    listen = models.PositiveSmallIntegerField()
+    listen = models.SmallIntegerField()
     name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return (
+            "Discord id: {0}\n"
+            "Server id: {1}\n"
+            "Name: {2}\n"
+        ).format(self.discord_id, self.server_id.id, self.name)
 
 
 class User(models.Model):
-    server_id = models.ForeignKey('Server')
     discord_id = models.CharField(max_length=64)
     username = models.CharField(max_length=128)
+
+    def __str__(self):
+        return (
+            "Discord id: {0}\n"
+            "Name: {1}\n"
+        ).format(self.discord_id, self.username)
+
+
+class Role(models.Model):
+    server_id = models.ForeignKey('Server')
+    user_id = models.ForeignKey('User')
     rank = models.PositiveSmallIntegerField()
+
+    def __str__(self):
+        return "Rank: {0}\n".format(self.rank)
 
 
 class Tag(models.Model):
     name = models.CharField(max_length=64)
+
+    def __str__(self):
+        return "Name: {0}\n".format(self.name)
 
 
 class Link(models.Model):
@@ -37,4 +71,21 @@ class Link(models.Model):
     title = models.CharField(max_length=128)
     media_url = models.CharField(max_length=2048)
     created_at = models.DateTimeField(auto_now_add=True)
-    tags = models.ManyToManyField(Tag)
+    tags = models.ManyToManyField(Tag, related_name="tags")
+
+    def __str__(self):
+        return (
+            "Url: {0}\n"
+            "Author: {1}\n"
+            "From channel: #{2}\n"
+            "Description: {3}\n"
+            "Title: {4}\n"
+            "Tags: {5}\n"
+        ).format(
+            self.source,
+            self.user_id.username,
+            self.channel_id.name,
+            self.description,
+            self.title,
+            [tag.name for tag in self.tags.all()]
+        )
