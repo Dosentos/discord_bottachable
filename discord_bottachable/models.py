@@ -63,6 +63,18 @@ class Tag(models.Model):
 
 
 class Link(models.Model):
+    # Initialize variables for choices
+    MEDIA_TYPE_PICTURE = 'picture'
+    MEDIA_TYPE_VIDEO = 'video'
+    MEDIA_TYPE_NONE = None
+
+    # Add possible values for media_type
+    MEDIA_TYPE_CHOICES = (
+        (MEDIA_TYPE_PICTURE, 'Picture'),
+        (MEDIA_TYPE_VIDEO, 'Video'),
+        (MEDIA_TYPE_NONE, 'No media')
+    )
+
     source = models.CharField(max_length=256)
     user_id = models.ForeignKey('User')
     channel_id = models.ForeignKey('Channel')
@@ -71,7 +83,9 @@ class Link(models.Model):
     title = models.CharField(max_length=128)
     media_url = models.CharField(max_length=2048)
     created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
     tags = models.ManyToManyField(Tag, related_name="tags")
+    media_type = models.CharField(max_length=64, choices=MEDIA_TYPE_CHOICES)
 
     def __str__(self):
         return (

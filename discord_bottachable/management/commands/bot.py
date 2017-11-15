@@ -359,9 +359,10 @@ def link_to_db(user_id, channel_id, server, message_dict, rows, message):
             defaults={
                 'user_id': rows['user'],
                 'channel_id': channel,
-                'description':message_dict['description'],
+                'description': message_dict['description'],
                 'title': message_dict['title'],
                 'media_url': message_dict['media_url'],
+                'media_type': message_dict['media_type']
             }
         )
     except Exception as e:
@@ -396,7 +397,7 @@ def link_to_db(user_id, channel_id, server, message_dict, rows, message):
 # This function saves the specific embeds to embeds_dicts and returns them
 def get_embeds(embeds):
     logger.info(embeds)
-    embeds_dict = {'description':'', 'media_url':'','title':'', 'provider':''}
+    embeds_dict = {'description':'', 'media_url':'','title':'', 'provider':'', 'media_type': None}
     for e in embeds:
         if 'description'  in e:
             embeds_dict['description'] = e['description']
@@ -410,8 +411,10 @@ def get_embeds(embeds):
 
         if 'video' in e and 'url' in e['video']:
             embeds_dict['media_url'] = e['video']['url']
+            embeds_dict['media_type'] = 'video'
         elif 'thumbnail' in e and 'url' in e['thumbnail']:
             embeds_dict['media_url'] = e['thumbnail']['url']
+            embeds_dict['media_type'] = 'picture'
         else:
             logger.info('Embeds have no thumbnail or thumbnail url!')
 
