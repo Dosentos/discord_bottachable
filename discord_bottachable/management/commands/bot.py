@@ -397,7 +397,7 @@ def link_to_db(user_id, channel_id, server, message_dict, rows, message):
 # This function saves the specific embeds to embeds_dicts and returns them
 def get_embeds(embeds):
     logger.info(embeds)
-    embeds_dict = {'description':'', 'media_url':'','title':'', 'provider':'', 'media_type': None}
+    embeds_dict = {'description':'', 'media_url':'','title':'', 'provider':'', 'media_type': 'no_media'}
     for e in embeds:
         if 'description'  in e:
             embeds_dict['description'] = e['description']

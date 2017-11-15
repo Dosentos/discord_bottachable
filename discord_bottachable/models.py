@@ -66,7 +66,7 @@ class Link(models.Model):
     # Initialize variables for choices
     MEDIA_TYPE_PICTURE = 'picture'
     MEDIA_TYPE_VIDEO = 'video'
-    MEDIA_TYPE_NONE = None
+    MEDIA_TYPE_NONE = 'no_media'
 
     # Add possible values for media_type
     MEDIA_TYPE_CHOICES = (
@@ -85,7 +85,7 @@ class Link(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     tags = models.ManyToManyField(Tag, related_name="tags")
-    media_type = models.CharField(max_length=64, choices=MEDIA_TYPE_CHOICES)
+    media_type = models.CharField(max_length=64, choices=MEDIA_TYPE_CHOICES, default='no_media')
 
     def __str__(self):
         return (
