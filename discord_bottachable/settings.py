@@ -25,6 +25,9 @@ DEBUG = False
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', None)
 
+# This url is the base of the url that will be sent to user in bot response
+WEBSITE_URL  = os.environ.get('WEBSITE_URL', None)
+
 # Admin information for logging
 ADMINS = (('Admin1','dosentti.dev@gmail.com'))
 MANAGERS = ADMINS

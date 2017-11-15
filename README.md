@@ -66,17 +66,16 @@ Discord bot that gathers all links shared in the specified channel and posts the
         ```python
         # SECURITY WARNING: keep the secret key used in production secret!
         SECRET_KEY = ""
-
         # Whether or not you should see proper error messages on the site when error happens
         DEBUG = True
-
         # Discord authentication stuff (add your token here)
         DISCORD_BOT_TOKEN = ''
-
         # As default sentry is disabled in debug mode so sentry key can be empty string
         SENTRY_KEY = ''
-
+        # Raven Empty raven config to ensure no messages are sent to sentry
         RAVEN_CONFIG = {}
+        # This is the url of your runserver
+        WEBSITE_URL = 'http://localhost:5000'
         ```
 
 ### Setting up mock data for UI

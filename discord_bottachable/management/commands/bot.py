@@ -2,7 +2,6 @@ from bs4 import BeautifulSoup
 from discord_bottachable import settings
 from django.core.management.base import BaseCommand
 from discord_bottachable.models import User, Role, Link, Tag, Server, Channel
-from pprint import pprint
 from datetime import datetime
 
 import urllib.request
@@ -210,7 +209,7 @@ def get_database_rows(message):
 
 
 async def handle_messages(message):
-    
+
     # Exit if message is DM
     if message.server is None:
         return
@@ -218,7 +217,7 @@ async def handle_messages(message):
     # Exit if not command
     if not message.content[0] == "!":
         return
-    
+
     rows = get_database_rows(message)
     # Exit if there's an error getting db rows
     if not rows["success"]:
@@ -245,8 +244,10 @@ async def handle_messages(message):
         message_saved = False
         error_message = ''
         message_saved, error_message = handle_link(message, rows)
-        if message_saved:
-            await client.send_message(message.channel, "Thank you, link published on discord-bottachable.discordapp.com")
+        if message_saved and error_message == 'updated':
+            await client.send_message(message.channel, "Thanks! Link updated on %s%s" %(settings.WEBSITE_URL, message.server.id))
+        elif message_saved:
+            await client.send_message(message.channel, "Thanks! See your link on %s%s" %(settings.WEBSITE_URL, message.server.id))
         else:
             await client.send_message(message.channel, "Oops! Something went wrong:\n%s" % (error_message))
 
@@ -323,6 +324,15 @@ def split_link_message(msg):
 # This function saves a link to database
 def link_to_db(user_id, channel_id, server, message_dict, rows, message):
     errors = ''
+    updated = False
+    verified, verified_url = verifyUrl(message_dict['url'])
+
+    if not verified:
+        errors = "%sYour link could not be validated\n" % (errors)
+        logger.info("Could not verify url: %s"% verified_url)
+        return False, errors
+    else:
+        message_dict['url'] = verified_url
 
     if message_dict['provider'] not in message_dict['tags'] and message_dict['provider'] != '':
         if message_dict['tags'] == '':
@@ -339,8 +349,8 @@ def link_to_db(user_id, channel_id, server, message_dict, rows, message):
     if message_dict['description'] == '':
         pass
     try:
-        # Create or retrieve message's channel row from the database
-        channel, created_channel = Channel.objects.get_or_create(
+        # Create or update/retrieve message's channel row from the database
+        channel, created_channel = Channel.objects.update_or_create(
             discord_id=message.channel.id,
             server_id=rows['server'],
             defaults={
@@ -348,9 +358,14 @@ def link_to_db(user_id, channel_id, server, message_dict, rows, message):
                 'name': message.channel.name
             }
         )
+    except Exception as e:
+        logger.error("Error at inserting or updating channel fields\n%s" % (e))
+        errors = ("%s%s\n" % (errors, e.message))
+        return False, errors
 
-        # Create or retrieve link
-        link, created_link = Link.objects.get_or_create(
+    try:
+        # Create or update/retrieve link
+        link, created_link = Link.objects.update_or_create(
             server_id=rows['server'],
             source=message_dict['url'],
             defaults={
@@ -361,21 +376,33 @@ def link_to_db(user_id, channel_id, server, message_dict, rows, message):
                 'media_url': message_dict['media_url'],
             }
         )
-
-        # Create or retrieve tags and make connection to the link
-        for tag in tags:
-            tag = ''.join(e for e in tag if e.isalnum() or e == '-')
-            if tag == '':
-                continue
-            link.tags.add(Tag.objects.get_or_create(name=tag)[0])
-
     except Exception as e:
-        logger.error("Error at inserting or updating database fields\n%s" % (e))
+        logger.error("Error at inserting or updating Link fields\n%s" % (e))
         errors = ("%s%s\n" % (errors, e.message))
         return False, errors
 
+    # Create or update/retrieve tags and make connection to the link
+    for tag in tags:
+        tag = ''.join(e for e in tag if e.isalnum() or e == '-')
+        if tag == '':
+            continue
+        try:
+            link.tags.add(Tag.objects.get_or_create(name=tag)[0])
+        except Exception as e:
+            logger.error("Error at inserting or updating Link fields\n%s" % (e))
+            errors = ("%s%s\n" % (errors, e.message))
+            return False, errors
+
+    if not created_link:
+        updated = True
+
     logger.info("Saved!\n url: '%s', title: '%s', tags: '%s', description: '%s', media_url: '%s', " %(message_dict['url'],message_dict['title'],message_dict['tags'],message_dict['description'],message_dict['media_url']))
     logger.info("----------")
+
+    if updated and errors == '':
+        errors = 'updated'
+        return True, errors
+
     return True, errors
 
 # This function saves the specific embeds to embeds_dicts and returns them
@@ -412,11 +439,38 @@ def get_embeds(embeds):
 def findTitle(url):
     # Get the html from the url
     webpage = urllib.request.urlopen(url).read()
+
     # Create an instance of beautifulSoup
     soup = BeautifulSoup(webpage, 'html.parser')
+
     # Find title tag
     if soup.title:
         title = soup.title.string
     else:
         title = 'Untitled'
     return title
+
+def verifyUrl(url):
+    verified = False
+    new_url = url
+    if new_url.startswith('www.'):
+        new_url = "http://%s" % (url)
+    try:
+        urllib.request.urlopen(new_url)
+        verified = True
+    except Exception as e:
+        logger.info(e)
+        if new_url.startswith('http://'):
+            new_url = new_url[:4] + "s" + new_url[4:]
+        elif new_url.startswith('https://'):
+            new_url = new_url[:4] + new_url[5:]
+        try:
+            urllib.request.urlopen(new_url)
+            verified = True
+        except Exception as e:
+            logger.info(e)
+            logger.info("Invalid url given")
+            new_url = url
+    if new_url.endswith('/'):
+        new_url = new_url[:-1]
+    return (verified, new_url)
