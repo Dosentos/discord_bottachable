@@ -1,5 +1,25 @@
+body{
+	background-color: #2C2F33;
+	color: #fff;
+}
+p{
+	opacity: .5;
+}
+.jumbotron{
+	background-color: #7289DA;
+}
+#addButton{
+	 background-color: #7289DA;
+	 color: #ffffff;
+	 margin-bottom: 16px;
+}
 #indexJumbotronLogo{
 	max-width: 299px;
+	margin: auto;
+	display: block;
+}
+#instructions{
+	padding-left: 15px;
 }
 @media screen and (min-width: 576px) {
 	#indexContent-left{

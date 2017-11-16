@@ -21,22 +21,25 @@
 		The links can be given tags for searching by topic.</p>
 	</div>
 	<div class="col-sm">
-		<h2>Want Bottachable on your Discord server?</h2>
-		<p>Ohjeita Lorem ipsum dolor sit amet, consectetur
-		adipiscing elit. Nunc maximus, nulla ut commodo sagittis,
-		sapien dui mattis dui, non pulvinar lorem felis nec erat. Aliquam egestas,
-		velit at condimentum placerat, sem sapien laoreet mauris, dictum porttitor lacus est nec enim.
-		Vivamus feugiat elit lorem, eu porttitor ante ultrices id. Phasellus suscipit tellus ante, nec dignissim
-		elit imperdiet nec. Nullam fringilla feugiat nisl. Ut pretium, metus venenatis dictum viverra, dui metus finibus
-		enim, ac rhoncus sem lorem vitae mauris. Suspendisse </p>
-		
-	{% if servers.count == 0 %}
-        <h2>Discord Bottachable is currently not in use on any server.</h2>
+	
+		{% if servers.count == 0 %}
+			<h2>Discord Bottachable is currently not in use on any server.</h2>
 		{% else %}
-        <h2>Discord Bottachable is currently in use on {{servers.count}} server(s).</h2>
-    {% endif %}
-		<p>Click <a href="#">here</a> to add me to your own server!</p>
+			<h2>Discord Bottachable is currently in use on {{servers.count}} server(s).</h2>
+		{% endif %}
 		
+		<p>To add Bottachable to your server you have to have manage server permission on the server.</p>
+		<a href="https://discordapp.com/oauth2/authorize?client_id=356739392003375104&scope=bot">
+		<button id="addButton">Add to server</button></a>
+
+		<h3>Instructions:</h3>
+		<ol id="instructions">
+			<li><p>Click the blue "Add to server"-button</p></li>
+			<li><p>Login to discord on the webpage where you are redirected</p></li>
+			<li><p>Select a server where bot is added from dropdown and click "Authorize"-button</p></li>
+			<li><p>Solve the CAPTCHA if asked</p></li>
+			<li><p>Bottachable should now be on your server</p></li>
+		</ol>
 	</div>
 	<!---
     {% if servers.count == 0 %}
