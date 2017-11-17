@@ -10,7 +10,6 @@ header {
     padding: 15px 15px;
     display: flex;
     flex-wrap: wrap;
-    /*background-color: #f8f9fa;*/
 	background-color: #7289DA;
     position: -webkit-sticky;
     position: sticky;
@@ -176,7 +175,7 @@ header > .measurement-area > nav > ul > li > a {
 	background-color: #2C2F33;
 }
 
-/* Petterin css*/
+/* Search button */
 .btn-outline-success{
 	background-color: #fff;
 	color: rgba(0,0,0,.5);
@@ -223,4 +222,3 @@ p{
 		border-right: 1px solid rgba(0, 0, 0, .1);
 	}
 }
-/*End of pjotr*/
