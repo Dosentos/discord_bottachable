@@ -2,6 +2,7 @@
 		"model": "discord_bottachable.user",
 		"pk": 1,
 		"fields": {
+      "username": "Mehxit",
 			"discord_id": "137230245039308800"
 		}
 	},
@@ -9,6 +10,7 @@
 		"model": "discord_bottachable.user",
 		"pk": 2,
 		"fields": {
+      "username": "tuomas",
 			"discord_id": "136854973479649280" 
 		}
 	},
@@ -16,6 +18,7 @@
 		"model": "discord_bottachable.user",
 		"pk": 3,
 		"fields": {
+      "username": "Dosentti",
 			"discord_id": "165149975100129280"
 		}
 	}

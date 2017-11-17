@@ -1,8 +1,11 @@
+from bs4 import BeautifulSoup
 from discord_bottachable import settings
 from django.core.management.base import BaseCommand
-from discord_bottachable.models import User, Link, Tag, Server
+from discord_bottachable.models import User, Role, Link, Tag, Server, Channel
 from pprint import pprint
+from datetime import datetime
 
+import urllib.request
 import asyncio
 import discord
 import logging
@@ -29,6 +32,203 @@ async def on_ready():
 # In here happens all the magic...
 @client.event
 async def on_message(message):
+    await handle_messages(message)
+
+@client.event
+async def on_message_edit(before, after):
+    await handle_messages(after)
+
+
+
+# Creates appropriate Discord message from given query set.
+def create_log_msg(message, querySet, server = None):
+    d = datetime.now()
+    msg = (
+        "```RESULTS FOR \"{0}:{1}\" ({2})\n"
+    ).format(message.author.name,message.content,d.strftime("%d/%m/%Y %H:%M"))
+    msg += "---------------------------------------------------\n"
+
+    for obj in querySet:
+        msg += "{0}".format(str(obj))
+        if isinstance(obj, User):
+            # If listing user instances: find user rank in the server
+            roles = Role.objects.filter(
+                server_id=server,
+                user_id=obj
+            )
+            if len(roles) > 0:
+                msg += "{0}".format(str(roles[0]))
+        msg += "----------\n"
+
+    msg += "---------------------------------------------------\n"
+    msg += "{0} total matches in the database.".format(len(querySet))
+    msg += "```"
+    return msg
+
+
+# Handles admin command checks and functionality.
+async def handle_admin_commands(rows, message):
+   
+    # Check has the message sender admin privileges in the server
+    if rows["role"].rank < 1:
+        return False
+
+    dest = message.channel
+    verbose = False
+    chann_msg = (
+        "\n``Note: Some details omitted. Please specify !log_channel "
+        "for the bot for more data.``"
+    )
+
+    if rows['server'].log_channel is not None:
+        chann = client.get_channel(rows['server'].log_channel.discord_id)
+        if chann is not None:
+            dest = chann
+            verbose = True
+    
+    if message.content.startswith('!log_channel'):
+        msg = (
+            "Please specify valid channel in the server. "
+            "``!log_channel (#channel-name)``"
+        )
+        if message.channel_mentions:
+            chann = message.channel_mentions[0]
+            # Create or retrieve the database row of the channel
+            channel, created_channel = Channel.objects.get_or_create(
+                discord_id=chann.id,
+                server_id=rows['server'],
+                defaults={
+                    'listen': 0,
+                    'name': chann.name
+                }
+            )
+            rows['server'].log_channel = channel
+            rows['server'].save()
+            msg = "Log channel is set to {0}".format(chann.mention)
+        await client.send_message(dest, msg)
+        return True
+    elif message.content.startswith('!dump_users'):
+        member_ids = [m.id for m in message.server.members]
+        users = User.objects.filter(discord_id__in=member_ids)
+        msg = (
+            "There are {0} users in the database "
+            "for this server. {1}"
+        ).format(len(users), chann_msg)
+        if verbose:
+            msg = create_log_msg(message, users, rows["server"])
+        await client.send_message(dest, msg)
+        return True
+    elif message.content.startswith('!dump_links'):
+        links = Link.objects.filter(server_id=rows['server'])
+        msg = (
+            "There are {0} links in the database "
+            "for this server. {1}"
+        ).format(len(links), chann_msg)
+        if verbose:
+            msg = create_log_msg(message, links)
+        await client.send_message(dest, msg)
+        return True
+    elif message.content.startswith('!dump_tags'):
+        tags = Tag.objects.filter(
+            tags__in=Link.objects.filter(server_id=rows["server"])
+        ).distinct()
+        msg = (
+            "There are {0} tags in the database "
+            "for this server. {1}"
+        ).format(len(tags), chann_msg)
+        if verbose:
+            msg = create_log_msg(message, tags)
+        await client.send_message(dest, msg)
+        return True
+    elif message.content.startswith('!delete_all_links'):
+        Link.objects.filter(server_id=rows['server']).delete()
+        await client.send_message(
+            dest,
+            "<@{0}> deleted all saved links.".format(message.author.id)
+        )
+        return True
+    elif message.content.startswith('!delete_all_tags'):
+        tags = Tag.objects.filter(
+            tags__in=Link.objects.filter(server_id=rows["server"])
+        ).delete()
+        await client.send_message(
+            dest,
+            "<@{0}> deleted all tags.".format(message.author.id)
+        )
+        return True
+
+    return False
+
+
+# Creates or retrieves database rows related to the message in the server.
+# Returns dictionary of the data and success flag
+def get_database_rows(message):
+    
+    data = {"success": True}
+    try:
+        
+        # Create or retrieve server row from the database
+        data["server"], data["created_server"] = Server.objects.get_or_create(
+            discord_id=message.server.id,
+            defaults={
+                'name': message.server.name
+            }
+        )
+
+        # Create or retrieve sender's row from the database
+        data["user"], data["created_user"] = User.objects.get_or_create(
+            discord_id=message.author.id,
+            defaults={
+                'username': message.author.name
+            }
+        )
+
+        # Update username if it's changed
+        if not data["created_user"]\
+        and data["user"].username != message.author.name:
+            data["user"].username = message.author.name
+            data["user"].save()
+        
+        is_owner = message.author.id == message.server.owner.id
+        
+        # Create or retrieve sender's role row from the database
+        # Server's owner gets automatically higher rank 
+        data["role"], data["created_role"] = Role.objects.get_or_create(
+            server_id=data["server"],
+            user_id=data["user"],
+            defaults={
+                "rank": 2 if is_owner else 0
+            }
+        )
+
+    except Exception as e:
+        logger.error("Error at fetching db rows:\n{0}".format(e))
+        data["success"] = False
+    
+    
+    return data
+
+
+async def handle_messages(message):
+    
+    # Exit if message is DM
+    if message.server is None:
+        return
+
+    # Exit if not command
+    if not message.content[0] == "!":
+        return
+    
+    rows = get_database_rows(message)
+    # Exit if there's an error getting db rows
+    if not rows["success"]:
+        logger.error("Message not processed because error in db fetch")
+        return
+
+    if await handle_admin_commands(rows, message):
+        return
+
+    # Other normie commands:
     if message.content.startswith('!test'):
         counter = 0
         tmp = await client.send_message(message.channel, 'Calculating messages...')
@@ -42,71 +242,31 @@ async def on_message(message):
         await client.send_message(message.channel, 'Done sleeping')
 
     elif message.content.startswith('!link'):
-        message_saved, error_message = handle_link(message)
+        message_saved = False
+        error_message = ''
+        message_saved, error_message = handle_link(message, rows)
         if message_saved:
             await client.send_message(message.channel, "Thank you, link published on discord-bottachable.discordapp.com")
         else:
             await client.send_message(message.channel, "Oops! Something went wrong:\n%s" % (error_message))
 
-    elif message.content.startswith('!admin_dump_users'):
-        objects = User.objects.all()
-        logger.info("----------")
-        for o in objects:
-            logger.info("user: %s" % o.discord_id)
-        logger.info("%s users in db" % len(objects))
-        logger.info("----------")
-        await client.send_message(message.channel, "Users dumped into console.")
-
-    elif message.content.startswith('!admin_dump_links'):
-        objects = Link.objects.all()
-        logger.info("----------")
-        for o in objects:
-            logger.info("url: %s\nuser: %s\nchannel: %s\nserver: %s\ndescription: "
-                  "%s\ntitle: %s\nimage: %s\ntagsLen: %s\ncreated: %s\n" % (
-                o.source,
-                    o.user_id, o.channel_id, o.server_id, o.description,
-                    o.title, o.media_url, o.tags.count(), o.created_at))
-            logger.info("********************")
-        logger.info("%s links in db" % len(objects))
-        logger.info("----------")
-        await client.send_message(message.channel, "links dumped into console.")
-
-    elif message.content.startswith('!admin_dump_tags'):
-        objects = Tag.objects.all()
-        for o in objects:
-            logger.info("tag: %s" % o.name)
-        logger.info("%s tags in db" % len(objects))
-        logger.info("----------")
-        await client.send_message(message.channel, "Tags dumped into console.")
-
-    elif message.content.startswith('!admin_delete_all_users'):
-        User.objects.all().delete()
-        logger.info("All users deleted!")
-        logger.info("----------")
-        await client.send_message(message.channel, "Users deleted")
-
-    elif message.content.startswith('!admin_delete_all_links'):
-        Link.objects.all().delete()
-        logger.info("All links deleted!")
-        logger.info("----------")
-        await client.send_message(message.channel, "Links deleted")
-
-    elif message.content.startswith('!admin_delete_all_tags'):
-        Tag.objects.all().delete()
-        logger.info("All tags deleted!")
-        logger.info("----------")
-        await client.send_message(message.channel, "Tags deleted")
 
 # This function handles all the messages containing '!link'
-def handle_link(message):
+def handle_link(message, rows):
     errors = ''
     msg = re.sub('\!link', '', message.content)
     if 'http://' in msg or 'https://' in msg or 'www.' in msg:
         message_dict = split_link_message(msg)
-
+        message_dict.update(get_embeds(message.embeds))
         if message_dict['url'] != '':
-            saved, errors = link_to_db(message.author.id, message.channel.id, message.server, message_dict)
-
+            saved, errors = link_to_db(
+                message.author.id,
+                message.channel.id,
+                message.server,
+                message_dict,
+                rows,
+                message
+            )
             if saved:
                 return (True, errors)
         else:
@@ -125,7 +285,7 @@ def split_link_message(msg):
     title = False
     tags = False
     url_set = False
-    logger.info(msg)
+    logger.info("Message: %s" % (msg))
     splitted_message = re.split('(tags:|title:)', msg)
 
     for part in splitted_message:
@@ -149,60 +309,64 @@ def split_link_message(msg):
                 message_dict['title'] = "%s %s" %(message_dict['title'], part)
 
             elif tags:
+                part = part.lower()
                 if message_dict['tags'] == '':
                     message_dict['tags'] = part
                 else:
                     message_dict['tags'] = "%s,%s" %(message_dict['tags'], part)
 
-    message_dict['url'] = message_dict['url'].strip(" ")
+    message_dict['url'] = message_dict['url'].strip(' ')
     message_dict['title'] = message_dict['title'].strip(' ')
     message_dict['tags'] = message_dict['tags'].strip(' ')
-    logger.info("#%s#" % (message_dict['tags']))
     return message_dict
 
 # This function saves a link to database
-def link_to_db(user_id, channel_id, server, message_dict):
+def link_to_db(user_id, channel_id, server, message_dict, rows, message):
     errors = ''
-    if message_dict['tags'] == '':
-        message_dict['tags'] = 'Untagged'
 
-    if message_dict['title'] == '':
-        message_dict['title'] = 'Lorem Ipsum Title'
+    if message_dict['provider'] not in message_dict['tags'] and message_dict['provider'] != '':
+        if message_dict['tags'] == '':
+            message_dict['tags'] =  message_dict['provider']
+        else:
+            message_dict['tags'] = "%s,%s" % (message_dict['tags'], message_dict['provider'])
+    elif message_dict['tags'] == '':
+        message_dict['tags'] = 'untagged'
 
     tags = message_dict['tags'].split(",")
 
+    if message_dict['title'] == '':
+        message_dict['title'] = findTitle(message_dict['url'])
+    if message_dict['description'] == '':
+        pass
     try:
-        # Create or retrieve user
-        user, created_user = User.objects.get_or_create(discord_id=user_id)
-
-        # Create or retrieve server
-        server, created_server = Server.objects.get_or_create(
-            discord_id=server.id,
+        # Create or retrieve message's channel row from the database
+        channel, created_channel = Channel.objects.get_or_create(
+            discord_id=message.channel.id,
+            server_id=rows['server'],
             defaults={
-                'name': server.name
+                'listen': 0,
+                'name': message.channel.name
             }
         )
 
         # Create or retrieve link
         link, created_link = Link.objects.get_or_create(
-            server_id=server,
+            server_id=rows['server'],
             source=message_dict['url'],
             defaults={
-                'user_id': user,
-                'channel_id': channel_id,
-                'description': "Vivamus imperdiet ligula a lacus congue eleifend id at dui. Cras nec tempor dui. Donec urna neque, pulvinar et felis eu, hendrerit dignissim urna. Donec consequat rutrum diam, tincidunt vulputate augue. Quisque lobortis condimentum hendrerit. Praesent id nulla id erat convallis molestie. Praesent risus ante, euismod nec massa id, pharetra commodo sapien.",
+                'user_id': rows['user'],
+                'channel_id': channel,
+                'description':message_dict['description'],
                 'title': message_dict['title'],
-                'media_url': 'https://media.mustijamirri.fi/media/wysiwyg/Musti_ja_Mirri/Artikkelit/kissa2.jpg',
+                'media_url': message_dict['media_url'],
             }
         )
 
         # Create or retrieve tags and make connection to the link
         for tag in tags:
             tag = ''.join(e for e in tag if e.isalnum() or e == '-')
-
             if tag == '':
                 continue
-
             link.tags.add(Tag.objects.get_or_create(name=tag)[0])
 
     except Exception as e:
@@ -210,6 +374,49 @@ def link_to_db(user_id, channel_id, server, message_dict):
         errors = ("%s%s\n" % (errors, e.message))
         return False, errors
 
-    logger.info("Saved! url: %s\ntitle: %s\ntags: %s" %(message_dict['url'],message_dict['title'],message_dict['tags']))
+    logger.info("Saved!\n url: '%s', title: '%s', tags: '%s', description: '%s', media_url: '%s', " %(message_dict['url'],message_dict['title'],message_dict['tags'],message_dict['description'],message_dict['media_url']))
     logger.info("----------")
     return True, errors
+
+# This function saves the specific embeds to embeds_dicts and returns them
+def get_embeds(embeds):
+    logger.info(embeds)
+    embeds_dict = {'description':'', 'media_url':'','title':'', 'provider':''}
+    for e in embeds:
+        if 'description'  in e:
+            embeds_dict['description'] = e['description']
+        else:
+            logger.info('Embeds have no description!')
+
+        if 'title' in e:
+            embeds_dict['title'] = e['title']
+        else:
+            logger.info('Embeds have no title!')
+
+        if 'video' in e and 'url' in e['video']:
+            embeds_dict['media_url'] = e['video']['url']
+        elif 'thumbnail' in e and 'url' in e['thumbnail']:
+            embeds_dict['media_url'] = e['thumbnail']['url']
+        else:
+            logger.info('Embeds have no thumbnail or thumbnail url!')
+
+        if 'provider' in e and  'name' in e['provider']:
+            embeds_dict['provider'] = e['provider']['name'].lower().strip(' ')
+        else:
+            logger.info('Embeds have no provider name')
+
+    return embeds_dict
+
+# This function is called if no title has been found elsewhere. 
+# It simply tries to find the title from the website in the url
+def findTitle(url):
+    # Get the html from the url
+    webpage = urllib.request.urlopen(url).read()
+    # Create an instance of beautifulSoup
+    soup = BeautifulSoup(webpage, 'html.parser')
+    # Find title tag
+    if soup.title:
+        title = soup.title.string
+    else:
+        title = 'Untitled'
+    return title
