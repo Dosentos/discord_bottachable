@@ -7,11 +7,11 @@
 
 /* https://github.com/VPenkov/okayNav-vanillaJS */
 header {
-    background-color: #ffffff;
     padding: 15px 15px;
     display: flex;
     flex-wrap: wrap;
-    background-color: #f8f9fa;
+    /*background-color: #f8f9fa;*/
+	background-color: #7289DA;
     position: -webkit-sticky;
     position: sticky;
     top: 0;
@@ -30,7 +30,7 @@ header > .brand {
     align-self: center;
     margin-right: 15px;
     font-weight: unset;
-    color: rgba(0,0,0,.9);
+    color: rgba(255,255,255,.9);
     font-size: 1.25rem;
     text-decoration: inherit;
 }
@@ -163,7 +163,7 @@ header > .measurement-area > nav > ul > li > a {
 }
 
 .okaynav-link > a {
-    color: rgba(0,0,0,.5);
+    color: rgba(255,255,255,1);
 }
 
 .okaynav-link > a:hover {
@@ -173,4 +173,54 @@ header > .measurement-area > nav > ul > li > a {
 /* Bootstrap card */
 .card {
     margin-bottom: 15px;
+	background-color: #2C2F33;
 }
+
+/* Petterin css*/
+.btn-outline-success{
+	background-color: #fff;
+	color: rgba(0,0,0,.5);
+	border-color: transparent;
+}
+.btn-outline-success:hover, .btn-outline-success:focus{
+	color: #fff;
+	background-color: #2C2F33;
+	border-color: rgba(0,0,0,.5);
+	box-shadow: none;
+}
+.btn-outline-success:focus{
+	box-shadow: 0 0px 2px 2px rgba(255,255,255,.5);
+}
+
+body{
+	background-color: #23272A;
+	color: #fff;
+}
+p{
+	opacity: .5;
+}
+.container{
+	padding-bottom: 12px;
+}
+.jumbotron{
+	background-color: #7289DA;
+}
+#addButton{
+	 background-color: #7289DA;
+	 color: #ffffff;
+	 margin-bottom: 16px;
+}
+#indexJumbotronLogo{
+	max-width: 299px;
+	margin: auto;
+	display: block;
+}
+#instructions{
+	padding-left: 15px;
+}
+@media screen and (min-width: 576px) {
+	#indexContent-left{
+		border-right: 1px solid rgba(0, 0, 0, .1);
+	}
+}
+/*End of pjotr*/
