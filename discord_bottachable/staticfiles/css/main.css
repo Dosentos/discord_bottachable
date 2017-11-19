@@ -190,13 +190,19 @@ header > .measurement-area > nav > ul > li > a {
 .btn-outline-success:focus{
 	box-shadow: 0 0px 2px 2px rgba(255,255,255,.5);
 }
-
-body{
+html, body{
+	min-height:100vh;
 	background-color: #23272A;
+	margin: 0;
+	padding: 0;
+}
+body{
 	color: #fff;
+	min-height:100vh;
 }
 p{
 	opacity: .5;
+	margin: 0;
 }
 .container{
 	padding-bottom: 12px;
