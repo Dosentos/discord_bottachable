@@ -104,7 +104,7 @@ header > .measurement-area > nav > ul > li > a {
 
 [data-okay-overflow] {
     z-index: 9999;
-    background-color: #ffffff;
+    background-color: #2C2F33;
     bottom: 0;
     box-shadow: 0 2px 2px 0 rgba(0,0,0,0.125);
     list-style: none;
@@ -117,6 +117,7 @@ header > .measurement-area > nav > ul > li > a {
     visibility: visible;
     width: 260px;
     margin-bottom: 0;
+	border: 1px solid #23272A;
 }
 
 [data-okay-overflow][aria-hidden] {
@@ -127,6 +128,12 @@ header > .measurement-area > nav > ul > li > a {
 
 [data-okay-overflow] > li {
     float: none;
+	width: 100%;
+	padding: 5px;
+}
+[data-okay-overflow] > li:hover, [data-okay-overflow] > li:hover > a {
+	background-color: #23272A;
+	color: #7289DA;
 }
 
 .measurement-area {
@@ -213,7 +220,16 @@ p{
 #addButton{
 	 background-color: #7289DA;
 	 color: #ffffff;
-	 margin-bottom: 16px;
+	 margin: 16px 0;
+}
+#addButton:hover, #addButton:focus{
+	color: #fff;
+	background-color: #2C2F33;
+	border-color: #7289DA;
+	box-shadow: none;
+}
+#addButton:focus{
+	box-shadow: 0 0px 2px 2px #7289DA;
 }
 #indexJumbotronLogo{
 	max-width: 299px;
