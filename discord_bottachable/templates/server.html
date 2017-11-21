@@ -56,23 +56,43 @@
 			</div>
 		</div>
 		{% endfor %}
-
-		<!-- PAGINATION EXAMPLE -->
-		<div class="pagination">
-			<div class="step-links">
-				{% if links.has_previous %}
-					<a href="?page={{ links.previous_page_number }}">Previous</a>
-				{% endif %}
-
-				<span class="current">
-					Page {{ links.number }} of {{ links.paginator.num_pages }}.
-				</span>
-
-				{% if links.has_next %}
-					<a href="?page={{ links.next_page_number }}">next</a>
-				{% endif %}
-			</div>
-		</div>
 	{% endif %}
+</div>
+<!-- PAGINATION EXAMPLE -->
+<div class="pagination">
+	<ul class="pagination" id="pagination">
+	{% if links.has_previous %}
+      <li class="paginationArrow"><a href="?page={{ links.previous_page_number }}">&laquo;</a></li>
+    {% else %}
+      <li class="disabled paginationArrow"><span>&laquo;</span></li>
+    {% endif %}
+	{% for l in links.paginator.page_range %}
+	  {% if links.number == l %}
+		<li class="active liPagination">{{ l }}</li>
+	  {% else %}
+		<li class="liPagination"><a href="?page={{ l }}">{{ l }}</a></li>
+	  {% endif %}
+	 {% endfor %}
+	{% if links.has_next %}
+      <li class="paginationArrow"><a href="?page={{ links.next_page_number }}">&raquo;</a></li>
+    {% else %}
+      <li class="disabled paginationArrow"><span>&raquo;</span></li>
+    {% endif %}
+	</ul>
+<!--
+	<div class="step-links">
+		{% if links.has_previous %}
+			<a href="?page={{ links.previous_page_number }}">Previous</a>
+		{% endif %}
+
+		<span class="current">
+			Page {{ links.number }} of {{ links.paginator.num_pages }}.
+		</span>
+
+		{% if links.has_next %}
+			<a href="?page={{ links.next_page_number }}">next</a>
+		{% endif %}
+	</div>
+	-->
 </div>
 {% endblock %}

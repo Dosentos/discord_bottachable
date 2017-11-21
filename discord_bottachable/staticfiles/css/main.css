@@ -239,6 +239,35 @@ p{
 #instructions{
 	padding-left: 15px;
 }
+#pagination{
+
+}
+.pagination{
+	margin: 0 auto;
+}
+.liPagination, .paginationArrow{
+	border-bottom:1px solid #2C2F33;
+	padding: 5px;
+	background-color: #7289DA;
+	border-radius: 5px;
+	margin: 0 1px;
+	min-width: 28px;
+	text-align: center;
+}
+.paginationArrow{
+	background-color: #99AAB5;
+}
+.liPagination > a, .paginationArrow > a{
+	text-decoration:none;
+	color: #fff;
+}
+.paginationArrow > a{
+	color: #2C2F33;
+}
+.active{
+	background-color: #2C2F33;
+	border:1px solid #7289DA;
+}
 @media screen and (min-width: 576px) {
 	#indexContent-left{
 		border-right: 1px solid rgba(0, 0, 0, .1);
