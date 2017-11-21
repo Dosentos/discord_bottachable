@@ -22,6 +22,7 @@
 				</li>
 			{% endfor %}
 		</ul>
+		<ul id="navigation-sidebar"></ul>
 	</nav>
 	</div>
 </header>
@@ -35,11 +36,15 @@
 		{% for l in links %}
 		<div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">
 			<div class="card">
-				<a href="{{l.source}}">
-					{% if l.media_url|length > 0 %}
-						<img style="height: 200px;" class="card-img-top" src="{{l.media_url}}" alt="Card image cap" title="{{l.source}}" />
-					{% endif %}
-				</a>
+				{% if l.media_type == 'picture' %}
+					<a href="{{l.source}}">
+						{% if l.media_url|length > 0 %}
+							<img class="card-img-top" src="{{l.media_url}}" alt="Card image cap" title="{{l.source}}" />
+						{% endif %}
+					</a>
+				{% elif l.media_type == 'video' %}
+					<iframe style="width: 100%; height: 200px;" src="{{l.media_url}}" frameborder="1" gesture="media" allowfullscreen></iframe>
+				{% endif %}
 				<div class="card-body">
 					<a href="{{l.source}}" title="{{l.source}}">
 						<h4 class="card-title">{{l.title}}</h4>

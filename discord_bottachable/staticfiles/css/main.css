@@ -74,6 +74,11 @@ header > .measurement-area > nav > ul > li > a {
     text-decoration: none;
 }
 
+header > .measurement-area > #navigation > #navigation-sidebar {
+    display: flex;
+    flex-direction: column;
+}
+
 [data-okay-toggle] {
     background-color: transparent;
     border: none;
