@@ -13,16 +13,6 @@ Discord bot that gathers all links shared in the specified channel and posts the
   - `tags: your, tags` &mdash; __optional__
   - `title: Your Title` &mdash; __optional__
 
-- !test
-  - Purpose: Tells you how many messages have you written among 100 last messages in current channel (discord.py example bot feature)
-  - Syntax: `!test`
-  - Example: `!test`
-
-- !sleep
-  - Purpose: waits five seconds and prints you response
-  - Syntax:  `!sleep`
-  - Example: `!sleep`
-
 ### Discord commands for admins
 - !admin_dump_users
   - prints all users in DB to console
