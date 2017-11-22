@@ -1,14 +1,16 @@
 from bs4 import BeautifulSoup
-from discord_bottachable import settings
-from django.core.management.base import BaseCommand
-from discord_bottachable.models import User, Role, Link, Tag, Server, Channel
 from datetime import datetime
+from discord_bottachable import settings
+from discord_bottachable.models import User, Role, Link, Tag, Server, Channel
+from django.core.management.base import BaseCommand
+from urllib.parse import urlparse
 
-import urllib.request
 import asyncio
 import discord
 import logging
+import http.client
 import re
+import urllib.request
 
 # Create an instance of logger
 logger = logging.getLogger(__name__)
@@ -444,10 +446,15 @@ def findTitle(url):
 def verifyUrl(url):
     verified = False
     new_url = url
-    if new_url.startswith('www.'):
+
+    if url.startswith('www.'):
         new_url = "http://%s" % (url)
+
     try:
-        urllib.request.urlopen(new_url)
+        req = urllib.request.Request(new_url, data=None, headers={
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'}
+        )
+        urllib.request.urlopen(req)
         verified = True
     except Exception as e:
         logger.info(e)
@@ -456,7 +463,10 @@ def verifyUrl(url):
         elif new_url.startswith('https://'):
             new_url = new_url[:4] + new_url[5:]
         try:
-            urllib.request.urlopen(new_url)
+            req = urllib.request.Request(new_url, data=None, headers={
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'}
+            )
+            urllib.request.urlopen(req)
             verified = True
         except Exception as e:
             logger.info(e)
