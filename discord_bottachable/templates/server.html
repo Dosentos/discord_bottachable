@@ -71,26 +71,40 @@
 	</div>
 	<!-- PAGINATION -->
 	{% if links.count != 0 %}
-	<div class="pagination">
-		<ul class="pagination" id="pagination">
-		{% if links.has_previous %}
-				<li class="paginationArrow"><a href="?page={{ links.previous_page_number }}">&laquo;</a></li>
-			{% else %}
-				<li class="disabled paginationArrow"><span>&laquo;</span></li>
-			{% endif %}
-		{% for l in links.paginator.page_range %}
-			{% if links.number == l %}
-			<li class="active liPagination">{{ l }}</li>
-			{% else %}
-			<li class="liPagination"><a href="?page={{ l }}">{{ l }}</a></li>
-			{% endif %}
-		{% endfor %}
-		{% if links.has_next %}
-				<li class="paginationArrow"><a href="?page={{ links.next_page_number }}">&raquo;</a></li>
-			{% else %}
-				<li class="disabled paginationArrow"><span>&raquo;</span></li>
-			{% endif %}
-		</ul>
+		<div class="pagination">
+			<ul class="pagination" id="pagination">
+			{% if links.has_previous %}
+					<li class="page-item">
+						<a class="page-link" href="?page={{ links.previous_page_number }}">&laquo;</a>
+					</li>
+				{% else %}
+					<li class="page-item disabled">
+						<a class="page-link">&laquo;</a>
+					</li>
+				{% endif %}
+			{% for l in links.paginator.page_range %}
+				{% if links.number == l %}
+					<li class="page-item active">
+						<a class="page-link">{{ l }}</a>
+					</li>
+				{% else %}
+					<li class="page-item">
+						<a class="page-link" href="?page={{ l }}">
+							{{ l }}
+						</a>
+					</li>
+				{% endif %}
+			{% endfor %}
+			{% if links.has_next %}
+					<li class="page-item">
+						<a class="page-link" href="?page={{ links.next_page_number }}">&raquo;</a>
+					</li>
+				{% else %}
+					<li class="page-item disabled">
+						<a class="page-link">&raquo;</a>
+					</li>
+				{% endif %}
+			</ul>
+		</div>
 	{% endif %}
-	</div>
 {% endblock %}
