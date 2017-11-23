@@ -86,6 +86,8 @@ class Link(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
     tags = models.ManyToManyField(Tag, related_name="tags")
     media_type = models.CharField(max_length=64, choices=MEDIA_TYPE_CHOICES, default='no_media')
+    bot_answer = models.CharField(max_length=64)
+
 
     def __str__(self):
         return (
