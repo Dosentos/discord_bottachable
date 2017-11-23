@@ -237,7 +237,7 @@ async def handle_messages(message, before=None):
         message_saved, error_message, link = handle_link(message, rows, before)
         if message_saved and error_message == 'updated':
             print(link.bot_answer)
-            old_bot_message = client.get_message(message.channel, link.bot_answer)
+            old_bot_message = await client.get_message(message.channel, link.bot_answer)
             print(old_bot_message)
             string = "Thanks! Link updated on %s%s" %(settings.WEBSITE_URL, message.server.id)
             await client.edit_message(old_bot_message, new_content=string, embed=None)
