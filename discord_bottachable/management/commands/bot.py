@@ -299,21 +299,21 @@ def get_words(words, start_word, stop_word, url):
 # This method splits user's message to url, title and tags.
 # Returns a dictionary
 def split_link_message(msg):
-    dict = {'url': '', 'title': '', 'tags': []}
+    data = {'url': '', 'title': '', 'tags': []}
     words = msg.split()
     # Loop through command message's words
     for index, word in enumerate(words):
         # If word contains url and there is no url set yet, set this as our url
-        if find_url(word) and not dict['url']:
-            dict['url'] = word
-        elif 'title:' in word and not dict['title']:
-            dict['title'] = ' '.join(
-                get_words(words[index:], 'title:', 'tags:', dict['url'])
+        if find_url(word) and not data['url']:
+            data['url'] = word
+        elif 'title:' in word and not data['title']:
+            data['title'] = ' '.join(
+                get_words(words[index:], 'title:', 'tags:', data['url'])
             )
-        elif 'tags:' in word and not dict['tags']:
-            dict['tags'] = get_words(words[index:], 'tags:', 'title:', dict['url'])
+        elif 'tags:' in word and not data['tags']:
+            data['tags'] = get_words(words[index:], 'tags:', 'title:', data['url'])
     
-    return dict
+    return data
 
 
 # This function saves a link to database
