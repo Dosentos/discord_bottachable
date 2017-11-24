@@ -85,12 +85,14 @@ Discord bot that gathers all links shared in the specified channel and posts the
     - `python manage.py makemigrations`
     - `python manage.py migrate`
 3. Load mock data
+    You can load all mock data as one with `python manage.py loaddata all`
+    OR one by one by specifying other json files:
     - `python manage.py loaddata servers.json`
     - `python manage.py loaddata users.json`
     - `python manage.py loaddata tags.json`
     - `python manage.py loaddata channels.json`
     - `python manage.py loaddata links.json`
+    > Note: Because of field relationships, that insert order matters!
     > Note: Make sure `models.py` contains all the fields
-
 4. Run server
     > Note: If you need to use print for debugging, say, views.py then use `python manage.py runserver`
