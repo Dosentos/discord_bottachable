@@ -38,6 +38,8 @@ async def on_message(message):
 
 @client.event
 async def on_message_edit(before, after):
+    # Wait for 5 seconds so bot has handled the original message (in case of embeds being loaded immediately)
+    await asyncio.sleep(5)
     await handle_messages(after, before)
 
 
@@ -236,14 +238,11 @@ async def handle_messages(message, before=None):
         error_message = ''
         message_saved, error_message, link = handle_link(message, rows, before)
         if message_saved and error_message == 'updated':
-            print(link.bot_answer)
             old_bot_message = await client.get_message(message.channel, link.bot_answer)
-            print(old_bot_message)
             string = "Thanks! Link updated on %s%s" %(settings.WEBSITE_URL, message.server.id)
             await client.edit_message(old_bot_message, new_content=string, embed=None)
         elif message_saved:
             bot_ans = await client.send_message(message.channel, "Thanks! See your link on %s%s" %(settings.WEBSITE_URL, message.server.id))
-            print(bot_ans)
             save_bot_response(link, bot_ans.id)
         else:
             await client.send_message(message.channel, "Oops! Something went wrong:\n%s" % (error_message))
@@ -292,7 +291,6 @@ def split_link_message(msg):
     title = False
     tags = False
     url_set = False
-    logger.info("Message: %s" % (msg))
     splitted_message = re.split('(tags:|title:)', msg)
 
     for part in splitted_message:
@@ -446,7 +444,6 @@ def link_to_db(user_id, channel_id, server, message_dict, rows, message, before_
         updated = True
 
     logger.info("Saved!\n url: '%s', title: '%s', tags: '%s', description: '%s', media_url: '%s', " %(message_dict['url'],message_dict['title'],message_dict['tags'],message_dict['description'],message_dict['media_url']))
-    logger.info("----------")
 
     if updated and errors == '':
         errors = 'updated'
@@ -456,7 +453,7 @@ def link_to_db(user_id, channel_id, server, message_dict, rows, message, before_
 
 # This function saves the specific embeds to embeds_dicts and returns them
 def get_embeds(embeds):
-    logger.info(embeds)
+    # logger.info(embeds)
     embeds_dict = {'description':'', 'media_url':'','title':'', 'provider':'', 'media_type': 'no_media'}
     for e in embeds:
         if 'description'  in e:
