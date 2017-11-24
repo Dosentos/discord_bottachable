@@ -113,6 +113,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'discord_bottachable',
     'raven.contrib.django.raven_compat',
+    'django.contrib.humanize'
 ]
 
 MIDDLEWARE = [

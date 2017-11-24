@@ -1,90 +1,110 @@
 {% extends "base.html" %} 
 {% load staticfiles %} 
+{% load humanize %}
 
 {% block navigation %}
-<header>
-	<a class="brand" href="/{{server_id}}">{{server_name}}</a>
-	<form class="form-inline my-2 my-lg-0" method="POST">
-		{% csrf_token %}
-		<input 
-			name="keywords" class="form-control mr-sm-2" 
-			type="text" placeholder="Search" aria-label="Search" 
-			value="{{current_keywords|addSpaces}}" 
-		/>
-		<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-	</form>
-	<div class="measurement-area">
-	<nav id="navigation">
-		<ul class="okaynav-main">
-			{% for c in channels %}
-				<li class="okaynav-link">
-					<a href="/{{server_id}}/{{c.name}}">#{{c.name}}</a>
-				</li>
-			{% endfor %}
-		</ul>
-		<ul id="navigation-sidebar"></ul>
-	</nav>
-	</div>
-</header>
-{% endblock %}
-{% block content %}
-<div class="row">
-	{% if links.count == 0 %}
-		<h2>Looks like I haven't collected any links for this server.</h2>
-		<p>You can start by using <pre>!link</pre> command.</p>
-	{% else %}
-		{% for l in links %}
-		<div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">
-			<div class="card">
-				{% if l.media_type == 'picture' %}
-					<a href="{{l.source}}">
-						{% if l.media_url|length > 0 %}
-							<img class="card-img-top" src="{{l.media_url}}" alt="Card image cap" title="{{l.source}}" />
-						{% endif %}
-					</a>
-				{% elif l.media_type == 'video' %}
-					<iframe style="width: 100%; height: 200px;" src="{{l.media_url}}" frameborder="1" gesture="media" allowfullscreen></iframe>
-				{% endif %}
-				<div class="card-body">
-					<a href="{{l.source}}" title="{{l.source}}">
-						<h4 class="card-title">{{l.title}}</h4>
-					</a>
-					<p class="card-text">{{l.description}}</p>
-					{% for t in l.tags.all %}
-						{% with link=tag_links|get_item:l.id %}
-							<a href="/{{server_id}}/{{link|get_item:t.id}}">
-								<span class="badge badge-pill badge-secondary">{{t.name}}</span>
-							</a>
-						{% endwith %}
-					{% endfor %}
+	<header>
+		<a class="brand" href="/{{server_id}}">{{server_name}}</a>
+		<form class="form-inline my-2 my-lg-0" method="POST">
+			{% csrf_token %}
+			<input 
+				name="keywords" class="form-control mr-sm-2" 
+				type="text" placeholder="Search" aria-label="Search" 
+				value="{{current_keywords|addSpaces}}" 
+			/>
+			<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+		</form>
+		<div class="measurement-area">
+		<nav id="navigation">
+			<ul class="okaynav-main">
+				{% for c in channels %}
+					<li class="okaynav-link">
+						<a href="/{{server_id}}/{{c.name}}">#{{c.name}}</a>
+					</li>
+				{% endfor %}
+			</ul>
+			<ul id="navigation-sidebar"></ul>
+		</nav>
+		</div>
+	</header>
+	{% endblock %}
+	{% block content %}
+	<div class="row">
+		{% if links.count == 0 %}
+			<h2>Looks like I haven't collected any links for this server.</h2>
+			<p>You can start by using <pre>!link</pre> command.</p>
+		{% else %}
+			{% for l in links %}
+			<div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">
+				<div class="card">
+					{% if l.media_type == 'picture' %}
+						<a href="{{l.source}}">
+							{% if l.media_url|length > 0 %}
+								<img class="card-img-top" src="{{l.media_url}}" alt="Card image cap" title="{{l.source}}" />
+							{% endif %}
+						</a>
+					{% elif l.media_type == 'video' %}
+						<iframe style="width: 100%; height: 200px;" src="{{l.media_url}}" frameborder="1" gesture="media" allowfullscreen></iframe>
+					{% endif %}
+					<div class="card-body">
+						<a href="{{l.source}}" title="{{l.source}}">
+							<h4 class="card-title">{{l.title}}</h4>
+						</a>
+						<p class="card-text">{{l.description}}</p>
+						{% for t in l.tags.all %}
+							{% with link=tag_links|get_item:l.id %}
+								<a href="/{{server_id}}/{{link|get_item:t.id}}">
+									<span class="badge badge-pill badge-secondary">{{t.name}}</span>
+								</a>
+							{% endwith %}
+						{% endfor %}
+					</div>
+					<div class="card-footer text-muted">
+						<span data-toggle="tooltip" data-placement="top" title="{{l.modified_at|date:'D, d N H:i:s e'}}">
+							{{ l.modified_at|naturaltime }}
+						</span>
+					</div>
 				</div>
 			</div>
+			{% endfor %}
+		{% endif %}
+	</div>
+	<!-- PAGINATION -->
+	{% if links.count != 0 %}
+		<div class="pagination">
+			<ul class="pagination" id="pagination">
+			{% if links.has_previous %}
+					<li class="page-item">
+						<a class="page-link" href="?page={{ links.previous_page_number }}">&laquo;</a>
+					</li>
+				{% else %}
+					<li class="page-item disabled">
+						<a class="page-link">&laquo;</a>
+					</li>
+				{% endif %}
+			{% for l in links.paginator.page_range %}
+				{% if links.number == l %}
+					<li class="page-item active">
+						<a class="page-link">{{ l }}</a>
+					</li>
+				{% else %}
+					<li class="page-item">
+						<a class="page-link" href="?page={{ l }}">
+							{{ l }}
+						</a>
+					</li>
+				{% endif %}
+			{% endfor %}
+			{% if links.has_next %}
+					<li class="page-item">
+						<a class="page-link" href="?page={{ links.next_page_number }}">&raquo;</a>
+					</li>
+				{% else %}
+					<li class="page-item disabled">
+						<a class="page-link">&raquo;</a>
+					</li>
+				{% endif %}
+			</ul>
 		</div>
-		{% endfor %}
 	{% endif %}
-</div>
-<!-- PAGINATION -->
-{% if links.count != 0 %}
-<div class="pagination">
-	<ul class="pagination" id="pagination">
-	{% if links.has_previous %}
-      <li class="paginationArrow"><a href="?page={{ links.previous_page_number }}">&laquo;</a></li>
-    {% else %}
-      <li class="disabled paginationArrow"><span>&laquo;</span></li>
-    {% endif %}
-	{% for l in links.paginator.page_range %}
-	  {% if links.number == l %}
-		<li class="active liPagination">{{ l }}</li>
-	  {% else %}
-		<li class="liPagination"><a href="?page={{ l }}">{{ l }}</a></li>
-	  {% endif %}
-	 {% endfor %}
-	{% if links.has_next %}
-      <li class="paginationArrow"><a href="?page={{ links.next_page_number }}">&raquo;</a></li>
-    {% else %}
-      <li class="disabled paginationArrow"><span>&raquo;</span></li>
-    {% endif %}
-	</ul>
-{% endif %}
-</div>
 {% endblock %}

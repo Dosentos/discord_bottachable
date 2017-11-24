@@ -28,7 +28,7 @@ def server(request, server_id, channel_name='', tags='', keywords=''):
         return redirect(getRedirectUrl(request, server_id, tags, keywords, channel_name))
     else:
         s = get_object_or_404(Server, discord_id=server_id)
-        all_links = Link.objects.filter(server_id=s)
+        all_links = Link.objects.filter(server_id=s).order_by('-modified_at')
         
         channels = Channel.objects.filter(server_id=s.id)
 
