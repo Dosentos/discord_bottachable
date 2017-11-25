@@ -117,7 +117,7 @@ def getTagLinks(all_links, server_id, tags, keywords, channel_name):
                 if t.name not in tags:
                     url += 'tags/' + ','.join(tags) + ',' + t.name
                 else:
-                    url += 'tags/' + ','.join(tags)
+                    url += 'tags/' + ','.join(tags) + '#'
             elif len(tags) == 0:
                 url += 'tags/' + t.name
             urls[l.id][t.id] = url
