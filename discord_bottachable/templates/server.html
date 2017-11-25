@@ -4,7 +4,9 @@
 
 {% block navigation %}
 	<header>
-		<a class="brand" href="/{{server_id}}">{{server_name}}</a>
+		<div class="brand">
+			<a href="/{{server_id}}">{{server_name}}</a>
+		</div>
 		<form class="form-inline my-2 my-lg-0" method="POST">
 			{% csrf_token %}
 			<input 
@@ -18,7 +20,7 @@
 		<nav id="navigation">
 			<ul class="okaynav-main">
 				{% for c in channels %}
-					<li class="okaynav-link">
+					<li class="okaynav-link {{c.name|isActiveLink:current_channel}}">
 						<a href="/{{server_id}}/{{c.name}}">#{{c.name}}</a>
 					</li>
 				{% endfor %}

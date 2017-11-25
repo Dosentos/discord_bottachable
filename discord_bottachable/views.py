@@ -19,6 +19,13 @@ def get_item(dictionary, key):
 def addSpaces(str):
     return str.replace(',', ', ')
 
+@register.filter
+def isActiveLink(channel_name, current_channel):
+    if channel_name == current_channel:
+        return 'active'
+    else:
+        return
+
 @register.simple_tag
 def urlWithoutSelf(url, tag, tags):
     tags = list(tags)
@@ -67,6 +74,7 @@ def server(request, server_id, channel_name='', tags='', keywords=''):
             'server_id': server_id,
             'server_name': s.name,
             'channels': channels,
+            'current_channel': channel_name,
             'tags': tags,
             'current_tags': ','.join(tags),
             'current_keywords': ','.join(keywords),
