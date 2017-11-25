@@ -45,7 +45,7 @@ def server(request, server_id, channel_name='', tags='', keywords=''):
         if len(tags) > 0:
             all_links = filterByTags(all_links, tags)
 
-        paginator = Paginator(all_links, 10)
+        paginator = Paginator(all_links, 12)
 
         page = request.GET.get('page')
         try:

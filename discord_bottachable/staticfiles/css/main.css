@@ -183,8 +183,27 @@ header > .measurement-area > #navigation > #navigation-sidebar {
 
 /* Bootstrap card */
 .card {
-    margin-bottom: 15px;
+    margin-bottom: 30px;
     background-color: #2C2F33;
+    flex-grow: 1;
+
+}
+
+.card .card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.card > .card-body > .card-body-top {
+    flex-grow: 1;
+}
+
+.card .card-img-top, .card .embed-responsive {
+    height: 200px;
+}
+
+.flex {
+    display: flex;
 }
 
 /* Search button */
