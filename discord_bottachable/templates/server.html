@@ -30,6 +30,19 @@
 	{% endblock %}
 	{% block content %}
 	<div class="row">
+		<div class="col-12">
+			<div class="current-tags-container">
+				{% for tag in tags %}
+					<a href="{% urlWithoutSelf current_url_without_tags tag tags %}">
+						<span class="badge badge-pill badge-secondary">
+							{{ tag }} <img src="{% static 'icons/delete.svg' %}" alt="delete">
+						</span>
+					</a>
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+	<div class="row">
 		{% if links.count == 0 %}
 			<h2>Looks like I haven't collected any links for this server.</h2>
 			<p>You can start by using <pre>!link</pre> command.</p>

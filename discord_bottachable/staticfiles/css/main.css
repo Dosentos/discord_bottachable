@@ -206,6 +206,10 @@ header > .measurement-area > #navigation > #navigation-sidebar {
     display: flex;
 }
 
+.current-tags-container {
+    margin-bottom: 15px;
+}
+
 /* Search button */
 .btn-outline-success{
     background-color: #fff;

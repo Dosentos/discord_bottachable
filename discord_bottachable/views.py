@@ -19,6 +19,13 @@ def get_item(dictionary, key):
 def addSpaces(str):
     return str.replace(',', ', ')
 
+@register.simple_tag
+def urlWithoutSelf(url, tag, tags):
+    tags = list(tags)
+    if tag in tags: 
+        tags.remove(tag)
+    return url + 'tags/' + ','.join(tags)
+
 # Create your views here.
 def index(request):
     return render(request, 'index.html', {'servers': Server.objects.all()})
@@ -63,7 +70,8 @@ def server(request, server_id, channel_name='', tags='', keywords=''):
             'tags': tags,
             'current_tags': ','.join(tags),
             'current_keywords': ','.join(keywords),
-            'tag_links': getTagLinks(all_links, server_id, tags, keywords, channel_name)
+            'tag_links': getTagLinks(all_links, server_id, tags, keywords, channel_name),
+            'current_url_without_tags': getCurrentUrlWithoutTags(server_id, channel_name, keywords)
         })
 
 def getRedirectUrl(request, server_id, tags, keywords, channel_name):
@@ -140,3 +148,11 @@ def str_to_array(str, delimeter):
     except Exception as e:
         array = []
     return array
+
+def getCurrentUrlWithoutTags(server_id, channel, keywords):
+    url = '/' + server_id + '/'
+    if len(channel) > 0:
+        url += channel + '/'
+    if len(keywords) > 0:
+        url += 'search/' + ','.join(keywords) + '/'
+    return url
