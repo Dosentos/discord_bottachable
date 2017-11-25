@@ -1,14 +1,17 @@
 from bs4 import BeautifulSoup
-from discord_bottachable import settings
-from django.core.management.base import BaseCommand
-from discord_bottachable.models import User, Role, Link, Tag, Server, Channel
 from datetime import datetime
+from discord_bottachable import settings
+from discord_bottachable.models import User, Role, Link, Tag, Server, Channel
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.management.base import BaseCommand
+from urllib.parse import urlparse
 
-import urllib.request
 import asyncio
 import discord
 import logging
+import http.client
 import re
+import urllib.request
 
 # Create an instance of logger
 logger = logging.getLogger(__name__)
@@ -35,7 +38,9 @@ async def on_message(message):
 
 @client.event
 async def on_message_edit(before, after):
-    await handle_messages(after)
+    # Wait for 5 seconds so bot has handled the original message (in case of embeds being loaded immediately)
+    await asyncio.sleep(5)
+    await handle_messages(after, before)
 
 
 
@@ -208,9 +213,9 @@ def get_database_rows(message):
     return data
 
 
-async def handle_messages(message):
+async def handle_messages(message, before=None):
 
-    # Exit if message is DM
+    # Exit if message is Direct Message
     if message.server is None:
         return
 
@@ -231,33 +236,45 @@ async def handle_messages(message):
     elif message.content.startswith('!link'):
         message_saved = False
         error_message = ''
-        message_saved, error_message = handle_link(message, rows)
+        message_saved, error_message, link = handle_link(message, rows, before)
         if message_saved and error_message == 'updated':
-            await client.send_message(message.channel, "Thanks! Link updated on %s%s" %(settings.WEBSITE_URL, message.server.id))
+            old_bot_message = await client.get_message(message.channel, link.bot_answer)
+            string = "Thanks! Link updated on %s%s" %(settings.WEBSITE_URL, message.server.id)
+            await client.edit_message(old_bot_message, new_content=string, embed=None)
         elif message_saved:
-            await client.send_message(message.channel, "Thanks! See your link on %s%s" %(settings.WEBSITE_URL, message.server.id))
+            bot_ans = await client.send_message(message.channel, "Thanks! See your link on %s%s" %(settings.WEBSITE_URL, message.server.id))
+            save_bot_response(link, bot_ans.id)
         else:
             await client.send_message(message.channel, "Oops! Something went wrong:\n%s" % (error_message))
 
 
+
 # This function handles all the messages containing '!link'
-def handle_link(message, rows):
+def handle_link(message, rows, before):
     errors = ''
+    link = None
+    before_dict = {'url':'', 'title': '', 'tags': ''}
+    if before != None:
+        before_message = re.sub('\!link', '', before.content)
+        if 'http://' in before_message or 'https://' in before_message or 'www.' in before_message:
+            before_dict = split_link_message(before_message)
+
     msg = re.sub('\!link', '', message.content)
     if 'http://' in msg or 'https://' in msg or 'www.' in msg:
         message_dict = split_link_message(msg)
         message_dict.update(get_embeds(message.embeds))
         if message_dict['url'] != '':
-            saved, errors = link_to_db(
+            saved, errors, link = link_to_db(
                 message.author.id,
                 message.channel.id,
                 message.server,
                 message_dict,
                 rows,
-                message
+                message,
+                before_dict,
             )
             if saved:
-                return (True, errors)
+                return (True, errors, link)
         else:
             logger.info("split_link_message function could not find the url")
             errors = "%sCould not find the url from the message\n" % (errors)
@@ -265,72 +282,81 @@ def handle_link(message, rows):
         logger.info("Link does not contain correct prefix")
         errors = "%sThere was no 'https:', 'http:' or 'www.' prefix in your link\n" % (errors)
 
-    return (False, errors)
+    return (False, errors, link)
+
+# Find possible url in a string
+def find_url(msg):
+    return re.search('http(|s):\/\/|www\.', msg)
+
+
+# Finds title and tags from the !link command message's words
+# Return list of the words found
+def get_words(words, start_word, stop_word, url):
+    results = []
+    # Loop through all given words
+    for word in words:
+        # If the word is just the start_word, continue
+        if word == start_word: continue
+
+        # If start_word is tied to the word without space, remove it
+        if start_word in word: word = word.replace(start_word, '')
+        # Break if stop word is found
+        if stop_word in word: break
+        # Title and tags can have url if another url is found already
+        if not find_url(word) or url:
+            if start_word == 'tags:':
+                # Finding tags, there might be ',' in the word/tag, remove that
+                results.append(word.strip(','))
+                continue
+            results.append(word)
+
+    return results
+
 
 # This method splits user's message to url, title and tags.
 # Returns a dictionary
 def split_link_message(msg):
-    message_dict = {'url':'', 'title':'', 'tags': ''}
-    title = False
-    tags = False
-    url_set = False
-    logger.info("Message: %s" % (msg))
-    splitted_message = re.split('(tags:|title:)', msg)
+    data = {'url': '', 'title': '', 'tags': []}
+    words = msg.split()
+    # Loop through command message's words
+    for index, word in enumerate(words):
+        # If word contains url and there is no url set yet, set this as our url
+        if find_url(word) and not data['url']:
+            data['url'] = word
+        elif 'title:' in word and not data['title']:
+            data['title'] = ' '.join(
+                get_words(words[index:], 'title:', 'tags:', data['url'])
+            )
+        elif 'tags:' in word and not data['tags']:
+            data['tags'] = get_words(words[index:], 'tags:', 'title:', data['url'])
+    
+    return data
 
-    for part in splitted_message:
-        if 'http://' in part or 'https://' in part or 'www.' in part:
-            if not url_set:
-                message_dict['url'] = part
-                url_set = True
-            else:
-                logger.warn("Warning, user's message contains more than one link")
-
-        elif 'title:' in part:
-            title = True
-            tags = False
-
-        elif 'tags:' in part:
-            title = False
-            tags = True
-
-        else:
-            if title:
-                message_dict['title'] = "%s %s" %(message_dict['title'], part)
-
-            elif tags:
-                part = part.lower()
-                if message_dict['tags'] == '':
-                    message_dict['tags'] = part
-                else:
-                    message_dict['tags'] = "%s,%s" %(message_dict['tags'], part)
-
-    message_dict['url'] = message_dict['url'].strip(' ')
-    message_dict['title'] = message_dict['title'].strip(' ')
-    message_dict['tags'] = message_dict['tags'].strip(' ')
-    return message_dict
 
 # This function saves a link to database
-def link_to_db(user_id, channel_id, server, message_dict, rows, message):
+def link_to_db(user_id, channel_id, server, message_dict, rows, message, before_dict):
     errors = ''
     updated = False
     verified, verified_url = verifyUrl(message_dict['url'])
 
+    if before_dict['url'] != '':
+        b_verified, b_verified_url = verifyUrl(before_dict['url'])
+        if b_verified:
+            before_dict['url'] = b_verified_url
+        else:
+            before_dict['url'] = ''
+
     if not verified:
         errors = "%sYour link could not be validated\n" % (errors)
         logger.info("Could not verify url: %s"% verified_url)
-        return False, errors
+        return False, errors, None
     else:
         message_dict['url'] = verified_url
 
     if message_dict['provider'] not in message_dict['tags'] and message_dict['provider'] != '':
-        if message_dict['tags'] == '':
-            message_dict['tags'] =  message_dict['provider']
-        else:
-            message_dict['tags'] = "%s,%s" % (message_dict['tags'], message_dict['provider'])
-    elif message_dict['tags'] == '':
-        message_dict['tags'] = 'untagged'
-
-    tags = message_dict['tags'].split(",")
+        message_dict['tags'].append(message_dict['provider'])
+    elif len(message_dict['tags']) == 0:
+        message_dict['tags'].append('untagged')
 
     if message_dict['title'] == '':
         message_dict['title'] = findTitle(message_dict['url'])
@@ -349,29 +375,64 @@ def link_to_db(user_id, channel_id, server, message_dict, rows, message):
     except Exception as e:
         logger.error("Error at inserting or updating channel fields\n%s" % (e))
         errors = ("%s%s\n" % (errors, e.message))
-        return False, errors
+        return False, errors, None
 
-    try:
-        # Create or update/retrieve link
-        link, created_link = Link.objects.update_or_create(
-            server_id=rows['server'],
-            source=message_dict['url'],
-            defaults={
-                'user_id': rows['user'],
-                'channel_id': channel,
-                'description': message_dict['description'],
-                'title': message_dict['title'],
-                'media_url': message_dict['media_url'],
-                'media_type': message_dict['media_type']
-            }
-        )
-    except Exception as e:
-        logger.error("Error at inserting or updating Link fields\n%s" % (e))
-        errors = ("%s%s\n" % (errors, e.message))
-        return False, errors
+    if before_dict['url'] != ''and before_dict['url'] != message_dict['url']:
+        try:
+            link = Link.objects.get(
+                server_id=rows['server'],
+                source=before_dict['url']
+            )
+            link.source = message_dict['url']
+            link.save()
+            created_link = False
+        except ObjectDoesNotExist as e:
+            try:
+                # Create or update/retrieve link
+                link, created_link = Link.objects.update_or_create(
+                    server_id=rows['server'],
+                    source=message_dict['url'],
+                    defaults={
+                        'user_id': rows['user'],
+                        'channel_id': channel,
+                        'description': message_dict['description'],
+                        'title': message_dict['title'],
+                        'media_url': message_dict['media_url'],
+                        'media_type': message_dict['media_type']
+                    }
+                )
+            except Exception as e:
+                logger.error("Error at inserting or updating Link fields\n%s" % (e))
+                errors = ("%s%s\n" % (errors, e.message))
+                return False, errors, None
+        except Exception as e:
+            logger.error("Error at inserting or updating Link fields\n%s" % (e))
+            errors = ("%s%s\n" % (errors, e.message))
+            return False, errors, None
+
+        link.source = message_dict['url']
+    else:
+        try:
+            # Create or update/retrieve link
+            link, created_link = Link.objects.update_or_create(
+                server_id=rows['server'],
+                source=message_dict['url'],
+                defaults={
+                    'user_id': rows['user'],
+                    'channel_id': channel,
+                    'description': message_dict['description'],
+                    'title': message_dict['title'],
+                    'media_url': message_dict['media_url'],
+                    'media_type': message_dict['media_type']
+                }
+            )
+        except Exception as e:
+            logger.error("Error at inserting or updating Link fields\n%s" % (e))
+            errors = ("%s%s\n" % (errors, e.message))
+            return False, errors, None
 
     # Create or update/retrieve tags and make connection to the link
-    for tag in tags:
+    for tag in message_dict['tags']:
         tag = ''.join(e for e in tag if e.isalnum() or e == '-')
         if tag == '':
             continue
@@ -380,23 +441,22 @@ def link_to_db(user_id, channel_id, server, message_dict, rows, message):
         except Exception as e:
             logger.error("Error at inserting or updating Link fields\n%s" % (e))
             errors = ("%s%s\n" % (errors, e.message))
-            return False, errors
+            return False, errors, link
 
     if not created_link:
         updated = True
 
     logger.info("Saved!\n url: '%s', title: '%s', tags: '%s', description: '%s', media_url: '%s', " %(message_dict['url'],message_dict['title'],message_dict['tags'],message_dict['description'],message_dict['media_url']))
-    logger.info("----------")
 
     if updated and errors == '':
         errors = 'updated'
-        return True, errors
+        return True, errors, link
 
-    return True, errors
+    return True, errors, link
 
 # This function saves the specific embeds to embeds_dicts and returns them
 def get_embeds(embeds):
-    logger.info(embeds)
+    # logger.info(embeds)
     embeds_dict = {'description':'', 'media_url':'','title':'', 'provider':'', 'media_type': 'no_media'}
     for e in embeds:
         if 'description'  in e:
@@ -428,26 +488,23 @@ def get_embeds(embeds):
 # This function is called if no title has been found elsewhere. 
 # It simply tries to find the title from the website in the url
 def findTitle(url):
-    # Get the html from the url
-    webpage = urllib.request.urlopen(url).read()
+    # TODO: Write a method that you can set domain as a title
 
-    # Create an instance of beautifulSoup
-    soup = BeautifulSoup(webpage, 'html.parser')
-
-    # Find title tag
-    if soup.title:
-        title = soup.title.string
-    else:
-        title = 'Untitled'
+    title = url
     return title
 
 def verifyUrl(url):
     verified = False
     new_url = url
-    if new_url.startswith('www.'):
+
+    if url.startswith('www.'):
         new_url = "http://%s" % (url)
+
     try:
-        urllib.request.urlopen(new_url)
+        req = urllib.request.Request(new_url, method="HEAD", data=None, headers={
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'}
+        )
+        urllib.request.urlopen(req)
         verified = True
     except Exception as e:
         logger.info(e)
@@ -455,8 +512,14 @@ def verifyUrl(url):
             new_url = new_url[:4] + "s" + new_url[4:]
         elif new_url.startswith('https://'):
             new_url = new_url[:4] + new_url[5:]
+        else: 
+            logger.info("Bad url shema. Only http and https are accepted")
+            return (verified, new_url)
         try:
-            urllib.request.urlopen(new_url)
+            req = urllib.request.Request(new_url, method="HEAD", data=None, headers={
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'}
+            )
+            urllib.request.urlopen(req)
             verified = True
         except Exception as e:
             logger.info(e)
@@ -465,3 +528,26 @@ def verifyUrl(url):
     if new_url.endswith('/'):
         new_url = new_url[:-1]
     return (verified, new_url)
+
+def compare_changes(after, before):
+    modified = {'url': False, 'title': False, 'tags': False}
+    after_message = re.sub('\!link', '', after.content)
+    before_message = re.sub('\!link', '', before.content)
+    if ('http://' in before_message or 'https://' in before_message or 'www.' in before_message) and ('http://' in after_message or 'https://' in after_message or 'www.' in after_message):
+        after_dict = split_link_message(after_message)
+        before_dict = split_link_message(before_message)
+        if after_dict['url'] != before_dict['url']:
+            modified['url'] = True
+        if after_dict['title'] != before_dict['title']:
+            modified['title'] = True
+        if after_dict['tags'] != before_dict['tags']:
+            modified['tags'] = True
+    return modified
+
+def save_bot_response(link, answer_id):
+    try:
+        link.bot_answer = answer_id
+        link.save()
+    except Exception as e:
+        logger.info("Couldn't save bot answer id", e)
+    return
