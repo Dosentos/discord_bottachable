@@ -485,17 +485,9 @@ def get_embeds(embeds):
 # This function is called if no title has been found elsewhere. 
 # It simply tries to find the title from the website in the url
 def findTitle(url):
-    # Get the html from the url
-    webpage = urllib.request.urlopen(url).read()
+    # TODO: Write a method that you can set domain as a title
 
-    # Create an instance of beautifulSoup
-    soup = BeautifulSoup(webpage, 'html.parser')
-
-    # Find title tag
-    if soup.title:
-        title = soup.title.string
-    else:
-        title = 'Untitled'
+    title = url
     return title
 
 def verifyUrl(url):
@@ -506,7 +498,7 @@ def verifyUrl(url):
         new_url = "http://%s" % (url)
 
     try:
-        req = urllib.request.Request(new_url, data=None, headers={
+        req = urllib.request.Request(new_url, method="HEAD", data=None, headers={
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'}
         )
         urllib.request.urlopen(req)
@@ -521,7 +513,7 @@ def verifyUrl(url):
             logger.info("Bad url shema. Only http and https are accepted")
             return (verified, new_url)
         try:
-            req = urllib.request.Request(new_url, data=None, headers={
+            req = urllib.request.Request(new_url, method="HEAD", data=None, headers={
                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'}
             )
             urllib.request.urlopen(req)
