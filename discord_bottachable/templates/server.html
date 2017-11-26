@@ -54,31 +54,33 @@
 				<div class="card">
 					<div class="card-body">
 						<div class="card-body-top">
-							{% if l.media_type == 'picture' %}
-								<a href="{{l.source}}">
-									{% if l.media_url|length > 0 %}
-										<img class="img-fluid card-img-top" src="{{l.media_url}}" alt="Card image cap" title="{{l.source}}" />
-									{% endif %}
-								</a>
-							{% elif l.media_type == 'video' %}
-								<div class="embed-responsive embed-responsive-4by3">
-									<iframe src="{{l.media_url}}" frameborder="1" gesture="media" allowfullscreen></iframe>
-								</div>
-							{% endif %}
-								<a href="{{l.source}}" title="{{l.source}}">
-									<h4 class="card-title">{{l.title}}</h4>
-								</a>
-								<p class="card-text">{{l.description}}</p>
+							<div class="card-mediaholder">
+								{% if l.media_type == 'picture' %}
+									<a href="{{l.source}}">
+										{% if l.media_url|length > 0 %}
+											<img class="img-fluid card-img-top" src="{{l.media_url}}" alt="Card image cap" title="{{l.source}}" />
+										{% endif %}
+									</a>
+								{% elif l.media_type == 'video' %}
+									<div class="embed-responsive embed-responsive-4by3">
+										<iframe src="{{l.media_url}}" frameborder="1" gesture="media" allowfullscreen></iframe>
+									</div>
+								{% endif %}
 							</div>
-							<div class="tags-container">
-								{% for t in l.tags.all %}
-									{% with link=tag_links|get_item:l.id %}
-										<a href="/{{server_id}}/{{link|get_item:t.id}}">
-											<span class="badge badge-pill badge-secondary">{{t.name}}</span>
-										</a>
-									{% endwith %}
-								{% endfor %}
-							</div>
+							<a href="{{l.source}}" title="{{l.source}}">
+								<h4 class="card-title">{{l.title}}</h4>
+							</a>
+							<p class="card-text">{{l.description}}</p>
+						</div>
+						<div class="tags-container">
+							{% for t in l.tags.all %}
+								{% with link=tag_links|get_item:l.id %}
+									<a href="/{{server_id}}/{{link|get_item:t.id}}">
+										<span class="badge badge-pill badge-secondary">{{t.name}}</span>
+									</a>
+								{% endwith %}
+							{% endfor %}
+						</div>
 					</div>
 					<div class="card-footer text-muted">
 						<span data-toggle="tooltip" data-placement="top" title="{{l.modified_at|date:'D, d N H:i:s e'}}">

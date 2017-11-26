@@ -217,11 +217,27 @@ header > .measurement-area > #navigation > #navigation-sidebar {
 .card > .card-body > .card-body-top {
     flex-grow: 1;
 }
-
 .card .card-img-top, .card .embed-responsive {
-    height: 200px;
+    
 }
-
+.card-img-top{
+	max-width: 100%;
+	max-height: 100%;
+	display: block;
+}
+.card-mediaholder{
+	max-height: 300px;
+	overflow: hidden;
+}
+@media screen and (max-width: 576px) {
+    .card-mediaholder{
+		max-height: 300px;
+		overflow: hidden;
+	}
+}
+.card-mediaholder  > a{
+	height: 100%;
+}
 .flex {
     display: flex;
 }
