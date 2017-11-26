@@ -2,6 +2,8 @@
 
 Discord bot that gathers all links shared in the specified channel and posts them to website
 
+Running on [https://discord-bottachable.herokuapp.com](https://discord-bottachable.herokuapp.com)
+
 ## Bot features
 
 ### Discord commands for standard user
@@ -31,7 +33,7 @@ Discord bot that gathers all links shared in the specified channel and posts the
 ## Instructions for development
 - When you pull new code, run `pip install -r requirements.txt` if there's new requirements added to project
 - If you install more PIP packages, remember to run `pip freeze > requirements.txt` to save them in requirements
-- If you add more settings in `local_settings.py`, remember to **update local settings example in readme**
+- If you add more settings in `local_settings.py`, **remember to update local settings** example in readme
 - In the project folder root you can start venv directly with `.\..\venv\scripts\activate` (powershell)
 
 ## Instructions for setting up development environment
@@ -52,7 +54,7 @@ Discord bot that gathers all links shared in the specified channel and posts the
 - You can now access your site on `localhost:5000`
 - Set up local_settings.py file
     - Inside the file you should write (verify from buddy that this is the latests version)
-    - Save the file in the project root directory.
+    - Save the file in the project root directory. (same place where you have readme)
         ```python
         # SECURITY WARNING: keep the secret key used in production secret!
         SECRET_KEY = ""

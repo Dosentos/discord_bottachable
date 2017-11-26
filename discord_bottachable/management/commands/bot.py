@@ -220,7 +220,7 @@ async def handle_messages(message, before=None):
         return
 
     # Exit if not command
-    if not message.content[0] == "!":
+    if not message.content.startswith('!'):
         return
 
     rows = get_database_rows(message)
