@@ -1,1 +1,1 @@
-web: gunicorn discord_bottachable.wsgi --log-file -
+web: honcho -f ProcfileHoncho start

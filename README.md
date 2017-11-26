@@ -2,13 +2,39 @@
 
 Discord bot that gathers all links shared in the specified channel and posts them to website
 
+Running on [https://discord-bottachable.herokuapp.com](https://discord-bottachable.herokuapp.com)
+
+## Bot features
+
+### Discord commands for standard user
+- !link
+  - Purpose: Saves a link to the database and publishes it on the website
+  - Syntax: `!link [url] tags: [your,tags] title: [your title]`
+  - Example: `!link https://discord-bottachable.herokuapp.com tags: discord, bottachable, bot, amazing, cool, attachment title: The front page of Discord-bottachable`
+  - `[url]` &mdash; __required__
+  - `tags: your, tags` &mdash; __optional__
+  - `title: Your Title` &mdash; __optional__
+
+### Discord commands for admins
+- !admin_dump_users
+  - prints all users in DB to console
+- !admin_dump_links
+  - prints all links in DB to console
+- !admin_dump_tags
+  - prints all tags in DB to console
+
+- !admin_delete_all_users
+  - deletes all users in DB
+- !admin_delete_all_links
+  - deletes all links in DB
+- !admin_delete_all_tags
+  - deletes all tags in DB
+
 ## Instructions for development
 - When you pull new code, run `pip install -r requirements.txt` if there's new requirements added to project
 - If you install more PIP packages, remember to run `pip freeze > requirements.txt` to save them in requirements
-- If you add more settings in `local_settings.py`, remember to **update local settings example in readme**
-
-
-
+- If you add more settings in `local_settings.py`, **remember to update local settings** example in readme
+- In the project folder root you can start venv directly with `.\..\venv\scripts\activate` (powershell)
 
 ## Instructions for setting up development environment
 
@@ -28,63 +54,37 @@ Discord bot that gathers all links shared in the specified channel and posts the
 - You can now access your site on `localhost:5000`
 - Set up local_settings.py file
     - Inside the file you should write (verify from buddy that this is the latests version)
-    - Save the file in the project root directory.
+    - Save the file in the project root directory. (same place where you have readme)
         ```python
         # SECURITY WARNING: keep the secret key used in production secret!
         SECRET_KEY = ""
-
         # Whether or not you should see proper error messages on the site when error happens
         DEBUG = True
-
-        # Discord authentication stuff
-        DISCORD_TOKEN = ''
+        # Discord authentication stuff (add your token here)
+        DISCORD_BOT_TOKEN = ''
+        # As default sentry is disabled in debug mode so sentry key can be empty string
+        SENTRY_KEY = ''
+        # Raven Empty raven config to ensure no messages are sent to sentry
+        RAVEN_CONFIG = {}
+        # This is the url of your runserver
+        WEBSITE_URL = 'http://localhost:5000'
         ```
 
-
-
-
-
-
-
-If you want to run the bot locally which is recommended, you should run 
-- TO BE CONTINUED
-- TODO: install clean working environment locally. (NGROK?)
-
-# Heroku starter Template
-
-An utterly fantastic project starter template for Django 1.11.
-
-## Features
-
-- Production-ready configuration for Static Files, Database Settings, Gunicorn, etc.
-- Enhancements to Django's static file serving functionality via WhiteNoise.
-- Latest Python 3.6 runtime environment. 
-
-## How to Use
-
-To use this project, follow these steps:
-
-1. Create your working environment.
-2. Install Django (`$ pip install django`)
-3. Create a new project using this template
-
-## Creating Your Project
-
-Using this template to create a new Django app is easy::
-
-    $ django-admin.py startproject --template=https://github.com/heroku/heroku-django-template/archive/master.zip --name=Procfile helloworld
-
-(If this doesn't work on windows, replace `django-admin.py` with `django-admin`)
-
-You can replace ``helloworld`` with your desired project name.
-
-## Deployment to Heroku
-- After making changes to models.py and pushing to heroku, you have to run command `heroku run python manage.py migrate`
-
-## License: MIT
-
-## Further Reading
-
-- [Gunicorn](https://warehouse.python.org/project/gunicorn/)
-- [WhiteNoise](https://warehouse.python.org/project/whitenoise/)
-- [dj-database-url](https://warehouse.python.org/project/dj-database-url/)
+### Setting up mock data for UI
+1. Delete `db.sqlite3` and everything else in `discord_bottachable/migrations/` except `__init__.py`
+2. Migrate
+    - `python manage.py showmigrations`
+    - `python manage.py makemigrations`
+    - `python manage.py migrate`
+3. Load mock data
+    You can load all mock data as one with `python manage.py loaddata all`
+    OR one by one by specifying other json files:
+    - `python manage.py loaddata servers.json`
+    - `python manage.py loaddata users.json`
+    - `python manage.py loaddata tags.json`
+    - `python manage.py loaddata channels.json`
+    - `python manage.py loaddata links.json`
+    > Note: Because of field relationships, that insert order matters!
+    > Note: Make sure `models.py` contains all the fields
+4. Run server
+    > Note: If you need to use print for debugging, say, views.py then use `python manage.py runserver`
