@@ -19,6 +19,20 @@ def get_item(dictionary, key):
 def addSpaces(str):
     return str.replace(',', ', ')
 
+@register.filter
+def isActiveLink(channel_name, current_channel):
+    if channel_name == current_channel:
+        return 'active'
+    else:
+        return
+
+@register.simple_tag
+def urlWithoutSelf(url, tag, tags):
+    tags = list(tags)
+    if tag in tags: 
+        tags.remove(tag)
+    return url + 'tags/' + ','.join(tags)
+
 # Create your views here.
 def index(request):
     return render(request, 'index.html', {'servers': Server.objects.all()})
@@ -45,7 +59,7 @@ def server(request, server_id, channel_name='', tags='', keywords=''):
         if len(tags) > 0:
             all_links = filterByTags(all_links, tags)
 
-        paginator = Paginator(all_links, 10)
+        paginator = Paginator(all_links, 12)
 
         page = request.GET.get('page')
         try:
@@ -60,10 +74,12 @@ def server(request, server_id, channel_name='', tags='', keywords=''):
             'server_id': server_id,
             'server_name': s.name,
             'channels': channels,
+            'current_channel': channel_name,
             'tags': tags,
             'current_tags': ','.join(tags),
             'current_keywords': ','.join(keywords),
-            'tag_links': getTagLinks(all_links, server_id, tags, keywords, channel_name)
+            'tag_links': getTagLinks(all_links, server_id, tags, keywords, channel_name),
+            'current_url_without_tags': getCurrentUrlWithoutTags(server_id, channel_name, keywords)
         })
 
 def getRedirectUrl(request, server_id, tags, keywords, channel_name):
@@ -101,7 +117,7 @@ def getTagLinks(all_links, server_id, tags, keywords, channel_name):
                 if t.name not in tags:
                     url += 'tags/' + ','.join(tags) + ',' + t.name
                 else:
-                    url += 'tags/' + ','.join(tags)
+                    url += 'tags/' + ','.join(tags) + '#'
             elif len(tags) == 0:
                 url += 'tags/' + t.name
             urls[l.id][t.id] = url
@@ -140,3 +156,11 @@ def str_to_array(str, delimeter):
     except Exception as e:
         array = []
     return array
+
+def getCurrentUrlWithoutTags(server_id, channel, keywords):
+    url = '/' + server_id + '/'
+    if len(channel) > 0:
+        url += channel + '/'
+    if len(keywords) > 0:
+        url += 'search/' + ','.join(keywords) + '/'
+    return url

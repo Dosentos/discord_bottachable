@@ -39,7 +39,7 @@ function OkayNav(target, rawopts) {
 
     if (!self.toggle.parentNode) {
         self.toggle.innerHTML = `
-            <nav class="navbar navbar-light">
+            <nav class="navbar navbar-dark">
                 <button class="navbar-toggler" type="button" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
